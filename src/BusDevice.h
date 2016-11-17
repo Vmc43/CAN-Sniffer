@@ -34,7 +34,8 @@ using namespace std;
  * abstract methods, the child classes MUST implement the methods that are listed in this
  * class.
  */
-class BusDevice {
+class BusDevice
+{
 protected:
 	unsigned int bus;    /**< the bus number */
 	unsigned int device; /**< the device number on the bus  */

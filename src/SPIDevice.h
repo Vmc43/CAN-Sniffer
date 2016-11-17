@@ -36,7 +36,8 @@ using namespace std;
  * @class SPIDevice
  * @brief Generic SPI Device class that can be used to connect to any type of SPI device and read or write to its registers
  */
-class SPIDevice:public BusDevice {
+class SPIDevice:public BusDevice
+{
 public:
 	/// The SPI Mode
 	enum SPIMODE{
