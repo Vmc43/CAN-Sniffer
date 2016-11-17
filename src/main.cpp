@@ -2,14 +2,15 @@
 // Name        : CAN-Sniffer.cpp
 // Author      : 
 // Version     :
-// Copyright   : Your copyright notice
+// Copyright   : 
 // Description : Hello World in C++, Ansi-style
 //============================================================================
 
 #include <iostream>
 using namespace std;
 
-int main() {
+int main()
+{
 	cout << "!!!Hello World!!!" << endl; // prints !!!Hello World!!!
 	return 0;
 }
