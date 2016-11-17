@@ -34,11 +34,8 @@ using namespace std;
  * abstract methods, the child classes MUST implement the methods that are listed in this
  * class.
  */
-class BusDevice {
-protected:
-	unsigned int bus;    /**< the bus number */
-	unsigned int device; /**< the device number on the bus  */
-	int handler;            /**< the file handle to the device */
+class BusDevice
+{
 public:
 	BusDevice(unsigned int bus, unsigned int device);
 	virtual int open()=0;
@@ -46,9 +43,18 @@ public:
 	virtual unsigned char* readRegisters(unsigned int number, unsigned int fromAddress=0)=0;
 	virtual int write(unsigned char value)=0;
 	virtual int writeRegister(unsigned int registerAddress, unsigned char value)=0;
-	virtual void debugDumpRegisters(unsigned int number = 0xff)=0;
 	virtual void close()=0;
 	virtual ~BusDevice();
+	virtual inline const unsigned int GetBus(){return bus;}
+	virtual inline const unsigned int GetDevice(){return device;}
+	virtual inline const unsigned int GetHandler(){return handler;}
+	virtual void SetBus(const unsigned int bus){BusDevice::bus=bus;}
+	virtual void SetDevice(const unsigned int device){BusDevice::device=device;}
+	virtual void SetHandler(const unsigned int handler){BusDevice::handler=handler;}
+private:
+	const unsigned int bus;    /**< the bus number */
+	const unsigned int device; /**< the device number on the bus  */
+	int handler;            /**< the file handle to the device */
 };
 
 #endif /* BUSDEVICE_H_ */

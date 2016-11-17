@@ -24,9 +24,9 @@
 
 #ifndef SPIDEVICE_H_
 #define SPIDEVICE_H_
-#include<string>
-#include<stdint.h>
-#include"BusDevice.h"
+#include <string>
+#include <stdint.h>
+#include "BusDevice.h"
 
 #define SPI_PATH "/dev/spidev" /**< The general path to an SPI device **/
 
@@ -36,7 +36,8 @@ using namespace std;
  * @class SPIDevice
  * @brief Generic SPI Device class that can be used to connect to any type of SPI device and read or write to its registers
  */
-class SPIDevice:public BusDevice {
+class SPIDevice:public BusDevice
+{
 public:
 	/// The SPI Mode
 	enum SPIMODE{
@@ -46,22 +47,31 @@ public:
 		MODE3 = 3    //!< High at idle, capture on rising clock edge
 	};
 
-private:
-	std::string filename;  //!< The precise filename for the SPI device
 public:
 	SPIDevice(unsigned int bus, unsigned int device, uint_fast16_t speed=500000);
+	virtual ~SPIDevice();
 	virtual int open();
+	virtual unsigned char readRegister(unsigned int registerAddress)=0;
+	virtual unsigned char* readRegisters(unsigned int number, unsigned int fromAddress=0)=0;
+	virtual int writeRegister(unsigned int registerAddress, unsigned char value)=0;
+	virtual void debugDumpRegisters(unsigned int number = 0xff);
+	virtual int write(unsigned char value);
+	virtual int write(unsigned char value[], int length);
 	virtual int setSpeed(uint32_t speed);
 	virtual int setMode(SPIDevice::SPIMODE mode);
 	virtual int setBitsPerWord(uint8_t bits);
 	virtual void close();
-	virtual ~SPIDevice();
-	virtual int transfer(unsigned char read[], unsigned char write[], int length);
+	virtual inline const uint_fast8_t GetBitsPerWord(){return bits;}
+	virtual inline const uint_fast8_t GetSpeed(){return speed;}
+	virtual inline const uint_fast8_t GetDelay(){return delay;}
+
 private:
 	SPIMODE mode;     //!< The SPI mode as per the SPIMODE enumeration
 	uint_fast8_t bits;     //!< The number of bits per word
 	uint_fast32_t speed;   //!< The speed of transfer in Hz
 	uint_fast16_t delay;   //!< The transfer delay in usecs
+	string filename;  //!< The precise filename for the SPI device
+	virtual int transfer(unsigned char read[], unsigned char write[], int length);
 };
 
 #endif /* SPIDEVICE_H_ */
