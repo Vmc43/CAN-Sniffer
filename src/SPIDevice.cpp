@@ -36,7 +36,6 @@
 #include <sys/ioctl.h>
 #include <linux/types.h>
 #include <linux/spi/spidev.h>
-using namespace std;
 
 #define HEX(x) setw(2) << setfill('0') << hex << (int)(x)  //!< Macro for filling in leading 0 on HEX outputs
 
@@ -46,8 +45,9 @@ using namespace std;
  * @param bus The SPI bus number X (first digit after spidevX.Y)
  * @param device The device on the bus Y (second digit after spidevX.Y)
  */
-SPIDevice::SPIDevice(unsigned int bus, unsigned int device, uint_fast16_t speed):
-	BusDevice(bus,device) {
+SPIDevice::SPIDevice(unsigned int bus, unsigned int device, uint_fast16_t speed)
+	:BusDevice(bus,device)
+{
 	stringstream s;
 	s << SPI_PATH << bus << "." << device;
 	this->filename = string(s.str());
@@ -62,15 +62,34 @@ SPIDevice::SPIDevice(unsigned int bus, unsigned int device, uint_fast16_t speed)
  * This method opens the file connection to the SPI device.
  * @return 0 on a successful open of the file
  */
-int SPIDevice::open(){
-	//cout << "Opening the file: " << filename.c_str() << endl;
-	if ((handler= ::open(filename.c_str(), O_RDWR))<0){
-		perror("SPI: Can't open device.");
+int SPIDevice::open()
+{
+	const int handler=::open(filename.c_str(), O_RDWR);
+
+	if(handler)
+	{
+		cerr<<"SPI: Can't open device."<<endl;
 		return -1;
 	}
-	if (this->setMode(this->mode)==-1) return -1;
-	if (this->setSpeed(this->speed)==-1) return -1;
-	if (this->setBitsPerWord(this->bits)==-1) return -1;
+	else
+	{
+		SetHandler(handler);
+	}
+
+	if(setMode(mode)==-1)
+	{
+		return -1;
+	}
+
+	if(setSpeed(speed)==-1)
+	{
+		return -1;
+	}
+
+	if(setBitsPerWord(bits)==-1)
+	{
+		return -1;
+	}
 	return 0;
 }
 
@@ -92,25 +111,15 @@ int SPIDevice::transfer(unsigned char send[], unsigned char receive[], int lengt
 	transfer.speed_hz = this->speed;
 	transfer.bits_per_word = this->bits;
 	transfer.delay_usecs = this->delay;
-	int status = ioctl(handler, SPI_IOC_MESSAGE(1), &transfer);
-	if (status < 0) {
-		perror("SPI: SPI_IOC_MESSAGE Failed");
+	int status = ioctl(GetHandler(), SPI_IOC_MESSAGE(1), &transfer);
+	if(status < 0)
+	{
+		cerr<<"SPI: SPI_IOC_MESSAGE Failed!"<<endl;
 		return -1;
 	}
 	return status;
 }
 
-/**
- *  A write method that writes a block of data of the length to the bus.
- *  @param value the array of data to write to the device
- *  @param length the length of the data array
- *  @return returns 0 if successful
- */
-int SPIDevice::write(unsigned char value[], int length){
-	unsigned char null_return = 0x00;
-	this->transfer(value, &null_return, length);
-	return 0;
-}
 
 /**
  *  Writes a value to a defined register address (check the datasheet for the device)
@@ -151,11 +160,13 @@ void SPIDevice::debugDumpRegisters(unsigned int number){
  */
 int SPIDevice::setSpeed(uint32_t speed){
 	this->speed = speed;
-	if (ioctl(handler, SPI_IOC_WR_MAX_SPEED_HZ, &this->speed)==-1){
+	if (ioctl(GetHandler(), SPI_IOC_WR_MAX_SPEED_HZ, &this->speed)==-1)
+	{
 		perror("SPI: Can't set max speed HZ");
 		return -1;
 	}
-	if (ioctl(handler, SPI_IOC_RD_MAX_SPEED_HZ, &this->speed)==-1){
+	if (ioctl(GetHandler(), SPI_IOC_RD_MAX_SPEED_HZ, &this->speed)==-1)
+	{
 		perror("SPI: Can't get max speed HZ.");
 		return -1;
 	}
@@ -168,11 +179,13 @@ int SPIDevice::setSpeed(uint32_t speed){
  */
 int SPIDevice::setMode(SPIDevice::SPIMODE mode){
 	this->mode = mode;
-	if (ioctl(handler, SPI_IOC_WR_MODE, &this->mode)==-1){
+	if (ioctl(GetHandler(), SPI_IOC_WR_MODE, &this->mode)==-1)
+	{
 		perror("SPI: Can't set SPI mode.");
 		return -1;
 	}
-	if (ioctl(handler, SPI_IOC_RD_MODE, &this->mode)==-1){
+	if (ioctl(GetHandler(), SPI_IOC_RD_MODE, &this->mode)==-1)
+	{
 		perror("SPI: Can't get SPI mode.");
 		return -1;
 	}
@@ -185,11 +198,13 @@ int SPIDevice::setMode(SPIDevice::SPIMODE mode){
  */
 int SPIDevice::setBitsPerWord(uint8_t bits){
 	this->bits = bits;
-	if (ioctl(handler, SPI_IOC_WR_BITS_PER_WORD, &this->bits)==-1){
+	if (ioctl(GetHandler(), SPI_IOC_WR_BITS_PER_WORD, &this->bits)==-1)
+	{
 		perror("SPI: Can't set bits per word.");
 		return -1;
 	}
-	if (ioctl(handler, SPI_IOC_RD_BITS_PER_WORD, &this->bits)==-1){
+	if (ioctl(GetHandler(), SPI_IOC_RD_BITS_PER_WORD, &this->bits)==-1)
+	{
 		perror("SPI: Can't get bits per word.");
 		return -1;
 	}
@@ -199,9 +214,10 @@ int SPIDevice::setBitsPerWord(uint8_t bits){
 /**
  *   Close the SPI device
  */
-void SPIDevice::close(){
-	::close(handler);
-	handler = -1;
+void SPIDevice::close()
+{
+	::close(GetHandler());
+	SetHandler(-1);
 }
 
 /**

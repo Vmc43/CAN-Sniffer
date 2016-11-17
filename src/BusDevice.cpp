@@ -29,10 +29,10 @@
  * @param bus the bus number
  * @param device the device number
  */
-BusDevice::BusDevice(unsigned int bus, unsigned int device)
+BusDevice::BusDevice(const unsigned int bus, const unsigned int device)
+	:bus(bus),
+	 device(device)
 {
-	BusDevice::bus = bus;
-	BusDevice::device = device;
 	BusDevice::handler=-1;
 }
 

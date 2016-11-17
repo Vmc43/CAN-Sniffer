@@ -1,17 +1,8 @@
-/**
- * @file	MCP2515.h
- * @date	23.10.2016
- * @author	test
- * @brief	Datei_Beschreibung_Kurz
+/*
+ * MCP2515.h
  *
- * Datei_Beschreibung_Lang
- */
-
-/** Funktion_Beschreibung_Kurz.
- * @param	Parameter_Name Parameter_Beschreibung
- * @return	Rueckgabe_Beschreibung
- *
- * Funktion_Beschreibung_Lang
+ *  Created on: 17.11.2016
+ *      Author: test
  */
 
 #ifndef MCP2515_H_
@@ -21,15 +12,11 @@
 
 using namespace std;
 
-class MCP_2515 {
+class MCP2515:public SPIDevice
+{
 public:
-	MCP_2515(unsigned int bus, unsigned int device, uint_fast16_t speed=500000);
-	virtual ~MCP_2515();
-
-	void Test();
-
-private:
-	SPIDevice SPI;
+	MCP2515(const unsigned int bus, const unsigned int device, const uint_fast16_t speed=500000);
+	virtual ~MCP2515();
 };
 
 #endif /* MCP2515_H_ */
