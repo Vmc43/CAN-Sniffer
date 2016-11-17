@@ -68,7 +68,7 @@ private:
 	uint_fast32_t speed;   //!< The speed of transfer in Hz
 	uint_fast16_t delay;   //!< The transfer delay in usecs
 	string filename;  //!< The precise filename for the SPI device
-	uint_fast8_t active;
+	uint_fast8_t active=false;
 	virtual int transfer(unsigned char read[], unsigned char write[], int length);
 	virtual int open();
 	virtual void close();

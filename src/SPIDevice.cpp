@@ -24,14 +24,10 @@
 
 #include "SPIDevice.h"
 #include <iostream>
-#include <sstream>
 #include <iomanip>
-#include <cstring>
+#include <string.h>
 #include <string>
 #include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <getopt.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <linux/types.h>
@@ -48,14 +44,12 @@
 SPIDevice::SPIDevice(unsigned int bus, unsigned int device, uint_fast16_t speed)
 	:BusDevice(bus,device)
 {
-	stringstream s;
-	s << SPI_PATH << bus << "." << device;
-	this->filename = string(s.str());
-	this->mode = SPIDevice::MODE1;
-	this->bits = 8;
-	this->speed = speed;
-	this->delay = 0;
-	this->open();
+	filename=SPI_PATH+std::to_string(bus)+"."+std::to_string(device);
+	mode = SPIDevice::MODE0;
+	bits = 8;
+	SPIDevice::speed = speed;
+	delay = 0;
+	open();
 }
 
 /**
@@ -90,6 +84,8 @@ int SPIDevice::open()
 	{
 		return -1;
 	}
+	active=true;
+
 	return 0;
 }
 
@@ -120,23 +116,6 @@ int SPIDevice::transfer(unsigned char send[], unsigned char receive[], int lengt
 	return status;
 }
 
-
-/**
- *  Writes a value to a defined register address (check the datasheet for the device)
- *  @param registerAddress the address of the register to write to
- *  @param value the value to write to the register
- *  @return returns 0 if successful
- */
-int SPIDevice::writeRegister(unsigned int registerAddress, unsigned char value){
-	unsigned char send[2], receive[2];
-	memset(receive, 0, sizeof receive);
-	send[0] = (unsigned char) registerAddress;
-	send[1] = value;
-	//cout << "The value that was written is: " << (int) send[1] << endl;
-	this->transfer(send, receive, 2);
-	return 0;
-}
-
 /**
  *  A simple method to dump the registers to the standard output -- useful for debugging
  *  @param number the number of registers to dump
@@ -147,7 +126,8 @@ void SPIDevice::debugDumpRegisters(unsigned int number){
 	cout << "Max speed: " << this->speed << endl;
 	cout << "Dumping Registers for Debug Purposes:" << endl;
 	unsigned char *registers = this->readRegisters(number);
-	for(int i=0; i<(int)number; i++){
+	for(int i=0; i<(int)number; i++)
+	{
 		cout << HEX(*(registers+i)) << " ";
 		if (i%16==15) cout << endl;
 	}
@@ -158,8 +138,15 @@ void SPIDevice::debugDumpRegisters(unsigned int number){
  *   Set the speed of the SPI bus
  *   @param speed the speed in Hz
  */
-int SPIDevice::setSpeed(uint32_t speed){
-	this->speed = speed;
+int SPIDevice::setSpeed(uint32_t speed)
+{
+	uint_fast8_t Active_vorher=active;
+	if(active)
+	{
+		SPIDevice::close();
+	}
+
+	SPIDevice::speed = speed;
 	if (ioctl(GetHandler(), SPI_IOC_WR_MAX_SPEED_HZ, &this->speed)==-1)
 	{
 		perror("SPI: Can't set max speed HZ");
@@ -170,6 +157,12 @@ int SPIDevice::setSpeed(uint32_t speed){
 		perror("SPI: Can't get max speed HZ.");
 		return -1;
 	}
+
+	if(Active_vorher)
+	{
+		SPIDevice::open();
+	}
+
 	return 0;
 }
 
@@ -177,18 +170,31 @@ int SPIDevice::setSpeed(uint32_t speed){
  *   Set the mode of the SPI bus
  *   @param mode the enumerated SPI mode
  */
-int SPIDevice::setMode(SPIDevice::SPIMODE mode){
-	this->mode = mode;
-	if (ioctl(GetHandler(), SPI_IOC_WR_MODE, &this->mode)==-1)
+int SPIDevice::setMode(SPIDevice::SPIMODE mode)
+{
+	uint_fast8_t Active_vorher=active;
+	if(active)
+	{
+		SPIDevice::close();
+	}
+
+	SPIDevice::mode = mode;
+	if(ioctl(GetHandler(), SPI_IOC_WR_MODE, &mode)==-1)
 	{
 		perror("SPI: Can't set SPI mode.");
 		return -1;
 	}
-	if (ioctl(GetHandler(), SPI_IOC_RD_MODE, &this->mode)==-1)
+	if (ioctl(GetHandler(), SPI_IOC_RD_MODE, &mode)==-1)
 	{
 		perror("SPI: Can't get SPI mode.");
 		return -1;
 	}
+
+	if(Active_vorher)
+	{
+		SPIDevice::open();
+	}
+
 	return 0;
 }
 
@@ -196,18 +202,31 @@ int SPIDevice::setMode(SPIDevice::SPIMODE mode){
  *   Set the number of bits per word of the SPI bus
  *   @param bits the number of bits per word
  */
-int SPIDevice::setBitsPerWord(uint8_t bits){
-	this->bits = bits;
-	if (ioctl(GetHandler(), SPI_IOC_WR_BITS_PER_WORD, &this->bits)==-1)
+int SPIDevice::setBitsPerWord(uint8_t bits)
+{
+	uint_fast8_t Active_vorher=active;
+	if(active)
+	{
+		SPIDevice::close();
+	}
+
+	SPIDevice::bits = bits;
+	if(ioctl(GetHandler(), SPI_IOC_WR_BITS_PER_WORD, &this->bits)==-1)
 	{
 		perror("SPI: Can't set bits per word.");
 		return -1;
 	}
-	if (ioctl(GetHandler(), SPI_IOC_RD_BITS_PER_WORD, &this->bits)==-1)
+	if(ioctl(GetHandler(), SPI_IOC_RD_BITS_PER_WORD, &this->bits)==-1)
 	{
 		perror("SPI: Can't get bits per word.");
 		return -1;
 	}
+
+	if(Active_vorher)
+	{
+		SPIDevice::open();
+	}
+
 	return 0;
 }
 
@@ -218,6 +237,7 @@ void SPIDevice::close()
 {
 	::close(GetHandler());
 	SetHandler(-1);
+	active=false;
 }
 
 /**
@@ -225,5 +245,5 @@ void SPIDevice::close()
  */
 SPIDevice::~SPIDevice()
 {
-	this->close();
+	close();
 }
