@@ -23,7 +23,7 @@ public:
 	};
 
 public:
-	SPIDevice(const uint_fast8_t bus, const uint_fast8_t device, uint_fast16_t speed=500000);
+	SPIDevice(const uint_fast8_t bus, const uint_fast8_t device, const uint_fast16_t speed=500000);
 	virtual ~SPIDevice();
 	virtual const uint_fast8_t readRegister(const uint_fast16_t registerAddress)const=0;
 	virtual const uint_fast8_t* readRegisters(const uint_fast8_t number, const uint_fast16_t fromAddress=0)const=0;

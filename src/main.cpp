@@ -13,11 +13,13 @@ using namespace std;
 
 #define SPI_SPEED 7800000	//Raspy
 //#define SPI_SPEED 1000000	//Bealgeboard
+#define Quartz_Speed 8.0
+#define Bitrate 1000000
 
 int main()
 {
-	MCP2515 Test(0,0,SPI_SPEED);
+	MCP2515 Test(0,0,Quartz_Speed,Bitrate,SPI_SPEED);
 
-	cout << "!!!Hello World!!!" << endl;
+	cout<<"Bitrate: "<<Test.GetBitRate()<<endl;
 	return 0;
 }

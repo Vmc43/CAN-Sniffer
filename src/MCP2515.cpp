@@ -10,10 +10,11 @@
 #include <iostream>
 #include <cstring> //Für memcpy() --> C-Style!
 
-MCP2515::MCP2515(const uint_fast8_t bus, const uint_fast8_t device, const uint_fast16_t speed)
-	:SPIDevice(bus,device,speed)
+MCP2515::MCP2515(const uint_fast8_t bus, const uint_fast8_t device, const float Quartz_Speed, const uint_fast32_t Bitrate, const uint_fast16_t SPI_speed)
+	:SPIDevice(bus,device,SPI_speed),
+	 Quartz_Speed(Quartz_Speed)
 {
-
+	MCP2515::Bitrate=Bitrate;
 }
 
 MCP2515::~MCP2515()
@@ -101,4 +102,19 @@ const int_fast8_t MCP2515::Bit_Modify(const uint_fast8_t adress, const uint_fast
 	uint_fast8_t receive[4];
 
 	return transfer(send,receive,4);
+}
+
+const int_fast8_t MCP2515::Init()
+{
+
+}
+
+void MCP2515::ChangeBitRate(const uint_fast32_t Bitrate)
+{
+
+}
+
+void MCP2515::ChangeCLKoutPin(const uint_fast8_t OnOffFlag) const
+{
+
 }

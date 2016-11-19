@@ -41,7 +41,7 @@
  * @param bus The SPI bus number X (first digit after spidevX.Y)
  * @param device The device on the bus Y (second digit after spidevX.Y)
  */
-SPIDevice::SPIDevice(const uint_fast8_t bus, const uint_fast8_t device, uint_fast16_t speed)
+SPIDevice::SPIDevice(const uint_fast8_t bus, const uint_fast8_t device, const uint_fast16_t speed)
 	:BusDevice(bus,device)
 {
 	filename=SPI_PATH+std::to_string(bus)+"."+std::to_string(device);
