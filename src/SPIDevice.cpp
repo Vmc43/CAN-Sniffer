@@ -97,7 +97,7 @@ const int_fast8_t SPIDevice::open()
  * @param length The length of the array to send
  * @return -1 on failure
  */
-const int_fast8_t SPIDevice::transfer(const uint_fast8_t send[], uint_fast8_t receive[], const uint_fast32_t length)
+const int_fast8_t SPIDevice::transfer(const uint_fast8_t send[], uint_fast8_t receive[], const uint_fast16_t length) const
 {
 	struct spi_ioc_transfer	transfer;
 
@@ -112,7 +112,7 @@ const int_fast8_t SPIDevice::transfer(const uint_fast8_t send[], uint_fast8_t re
 	transfer.bits_per_word = bits;
 	transfer.delay_usecs = delay;
 
-	int status = ioctl(GetHandler(), SPI_IOC_MESSAGE(1), &transfer);
+	const int_fast8_t status = ioctl(GetHandler(), SPI_IOC_MESSAGE(1), &transfer);
 	if(status < 0)
 	{
 		cerr<<"SPI: SPI_IOC_MESSAGE Failed!"<<endl;
@@ -126,7 +126,7 @@ const int_fast8_t SPIDevice::transfer(const uint_fast8_t send[], uint_fast8_t re
  *  A simple method to dump the registers to the standard output -- useful for debugging
  *  @param number the number of registers to dump
  */
-void SPIDevice::debugDumpRegisters(const uint_fast16_t number)
+void SPIDevice::debugDumpRegisters(const uint_fast16_t number) const
 {
 	cout << "SPI Mode: " << mode << endl;
 	cout << "Bits per word: " << (int)bits << endl;
@@ -255,8 +255,9 @@ SPIDevice::~SPIDevice()
 	close();
 }
 
-const int_fast8_t SPIDevice::write(const uint_fast8_t value)
+const int_fast8_t SPIDevice::write(const uint_fast8_t value) const
 {
-	unsigned char null_return = 0x00;
+	uint_fast8_t null_return = 0x00;
+
 	return transfer(&value, &null_return, sizeof(value));
 }
