@@ -38,11 +38,11 @@ class BusDevice
 {
 public:
 	BusDevice(const unsigned int bus, const unsigned int device);
-	virtual int open()=0;
-	virtual unsigned char readRegister(unsigned int registerAddress)=0;
-	virtual unsigned char* readRegisters(unsigned int number, unsigned int fromAddress=0)=0;
-	virtual int write(unsigned char value)=0;
-	virtual int writeRegister(unsigned int registerAddress, unsigned char value)=0;
+	virtual const int open()=0;
+	virtual unsigned const char readRegister(const unsigned int registerAddress)=0;
+	virtual unsigned const char* readRegisters(const unsigned int number, const unsigned int fromAddress=0)=0;
+	virtual int const write(const unsigned char value)=0; //Only for debug
+	virtual int const writeRegister(const unsigned int registerAddress, const unsigned char value)=0;
 	virtual void close()=0;
 	virtual ~BusDevice();
 	virtual inline const unsigned int GetBus(){return bus;}

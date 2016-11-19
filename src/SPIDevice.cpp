@@ -56,7 +56,7 @@ SPIDevice::SPIDevice(unsigned int bus, unsigned int device, uint_fast16_t speed)
  * This method opens the file connection to the SPI device.
  * @return 0 on a successful open of the file
  */
-int SPIDevice::open()
+const int SPIDevice::open()
 {
 	const int handler=::open(filename.c_str(), O_RDWR);
 
@@ -97,7 +97,7 @@ int SPIDevice::open()
  * @param length The length of the array to send
  * @return -1 on failure
  */
-int SPIDevice::transfer(unsigned char send[], unsigned char receive[], int length)
+const int SPIDevice::transfer(unsigned char send[], unsigned char receive[], int length)
 {
 	struct spi_ioc_transfer	transfer;
 	memset(&transfer,0,sizeof(transfer));
@@ -120,12 +120,13 @@ int SPIDevice::transfer(unsigned char send[], unsigned char receive[], int lengt
  *  A simple method to dump the registers to the standard output -- useful for debugging
  *  @param number the number of registers to dump
  */
-void SPIDevice::debugDumpRegisters(unsigned int number){
-	cout << "SPI Mode: " << this->mode << endl;
-	cout << "Bits per word: " << (int)this->bits << endl;
-	cout << "Max speed: " << this->speed << endl;
+void SPIDevice::debugDumpRegisters(const unsigned int number)
+{
+	cout << "SPI Mode: " << mode << endl;
+	cout << "Bits per word: " << (int)bits << endl;
+	cout << "Max speed: " << speed << endl;
 	cout << "Dumping Registers for Debug Purposes:" << endl;
-	unsigned char *registers = this->readRegisters(number);
+	const unsigned char *registers = readRegisters(number);
 	for(int i=0; i<(int)number; i++)
 	{
 		cout << HEX(*(registers+i)) << " ";
@@ -138,7 +139,7 @@ void SPIDevice::debugDumpRegisters(unsigned int number){
  *   Set the speed of the SPI bus
  *   @param speed the speed in Hz
  */
-int SPIDevice::setSpeed(uint32_t speed)
+const int SPIDevice::setSpeed(uint32_t speed)
 {
 	uint_fast8_t Active_vorher=active;
 	if(active)
@@ -170,7 +171,7 @@ int SPIDevice::setSpeed(uint32_t speed)
  *   Set the mode of the SPI bus
  *   @param mode the enumerated SPI mode
  */
-int SPIDevice::setMode(SPIDevice::SPIMODE mode)
+const int SPIDevice::setMode(SPIDevice::SPIMODE mode)
 {
 	uint_fast8_t Active_vorher=active;
 	if(active)
@@ -202,7 +203,7 @@ int SPIDevice::setMode(SPIDevice::SPIMODE mode)
  *   Set the number of bits per word of the SPI bus
  *   @param bits the number of bits per word
  */
-int SPIDevice::setBitsPerWord(uint8_t bits)
+const int SPIDevice::setBitsPerWord(uint8_t bits)
 {
 	uint_fast8_t Active_vorher=active;
 	if(active)
@@ -246,4 +247,9 @@ void SPIDevice::close()
 SPIDevice::~SPIDevice()
 {
 	close();
+}
+
+const int SPIDevice::write(const unsigned char value)
+{
+
 }

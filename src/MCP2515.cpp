@@ -17,3 +17,18 @@ MCP2515::~MCP2515()
 {
 	// TODO Auto-generated destructor stub
 }
+
+unsigned const char MCP2515::readRegister(unsigned int registerAddress)
+{
+
+}
+
+unsigned const char* MCP2515::readRegisters(unsigned int number, unsigned int fromAddress)
+{
+
+}
+
+const int MCP2515::writeRegister(unsigned int registerAddress, unsigned char value)
+{
+
+}
