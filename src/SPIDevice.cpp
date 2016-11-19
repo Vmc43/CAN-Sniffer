@@ -58,9 +58,9 @@ SPIDevice::SPIDevice(const uint_fast8_t bus, const uint_fast8_t device, uint_fas
  */
 const int_fast8_t SPIDevice::open()
 {
-	const int handler=::open(filename.c_str(), O_RDWR);
+	const int_fast16_t handler=::open(filename.c_str(), O_RDWR);
 
-	if(handler)
+	if(handler<0)
 	{
 		cerr<<"SPI: Can't open device."<<endl;
 		return -1;
@@ -147,21 +147,21 @@ void SPIDevice::debugDumpRegisters(const uint_fast16_t number)
  */
 const int_fast8_t SPIDevice::setSpeed(const uint32_t speed)
 {
-	uint_fast8_t Active_vorher=active;
+	const uint_fast8_t Active_vorher=active;
 	if(active)
 	{
 		SPIDevice::close();
 	}
 
 	SPIDevice::speed = speed;
-	if (ioctl(GetHandler(), SPI_IOC_WR_MAX_SPEED_HZ, &this->speed)==-1)
+	if(ioctl(GetHandler(), SPI_IOC_WR_MAX_SPEED_HZ, &this->speed)==-1)
 	{
-		perror("SPI: Can't set max speed HZ");
+		cerr<<"SPI: Can't set max speed HZ"<<endl;
 		return -1;
 	}
-	if (ioctl(GetHandler(), SPI_IOC_RD_MAX_SPEED_HZ, &this->speed)==-1)
+	if(ioctl(GetHandler(), SPI_IOC_RD_MAX_SPEED_HZ, &this->speed)==-1)
 	{
-		perror("SPI: Can't get max speed HZ.");
+		cerr<<"SPI: Can't get max speed HZ."<<endl;
 		return -1;
 	}
 
@@ -179,7 +179,7 @@ const int_fast8_t SPIDevice::setSpeed(const uint32_t speed)
  */
 const int_fast8_t SPIDevice::setMode(const SPIDevice::SPIMODE mode)
 {
-	uint_fast8_t Active_vorher=active;
+	const uint_fast8_t Active_vorher=active;
 	if(active)
 	{
 		SPIDevice::close();
@@ -188,12 +188,12 @@ const int_fast8_t SPIDevice::setMode(const SPIDevice::SPIMODE mode)
 	SPIDevice::mode = mode;
 	if(ioctl(GetHandler(), SPI_IOC_WR_MODE, &mode)==-1)
 	{
-		perror("SPI: Can't set SPI mode.");
+		cerr<<"SPI: Can't set SPI mode."<<endl;
 		return -1;
 	}
 	if (ioctl(GetHandler(), SPI_IOC_RD_MODE, &mode)==-1)
 	{
-		perror("SPI: Can't get SPI mode.");
+		cerr<<"SPI: Can't get SPI mode."<<endl;
 		return -1;
 	}
 
@@ -211,7 +211,7 @@ const int_fast8_t SPIDevice::setMode(const SPIDevice::SPIMODE mode)
  */
 const int_fast8_t SPIDevice::setBitsPerWord(const uint8_t bits)
 {
-	uint_fast8_t Active_vorher=active;
+	const uint_fast8_t Active_vorher=active;
 	if(active)
 	{
 		SPIDevice::close();
@@ -220,12 +220,12 @@ const int_fast8_t SPIDevice::setBitsPerWord(const uint8_t bits)
 	SPIDevice::bits = bits;
 	if(ioctl(GetHandler(), SPI_IOC_WR_BITS_PER_WORD, &this->bits)==-1)
 	{
-		perror("SPI: Can't set bits per word.");
+		cerr<<"SPI: Can't set bits per word."<<endl;
 		return -1;
 	}
 	if(ioctl(GetHandler(), SPI_IOC_RD_BITS_PER_WORD, &this->bits)==-1)
 	{
-		perror("SPI: Can't get bits per word.");
+		cerr<<"SPI: Can't get bits per word."<<endl;
 		return -1;
 	}
 

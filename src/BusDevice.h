@@ -50,7 +50,7 @@ public:
 	virtual inline const uint_fast8_t GetBus(){return bus;}
 	virtual inline const uint_fast8_t GetDevice(){return device;}
 	virtual inline const int_fast16_t GetHandler(){return handler;}
-	virtual inline void SetHandler(const unsigned int handler){BusDevice::handler=handler;}
+	virtual inline void SetHandler(const int_fast16_t handler){BusDevice::handler=handler;}
 private:
 	const uint_fast8_t bus;    /**< the bus number */
 	const uint_fast8_t device; /**< the device number on the bus  */

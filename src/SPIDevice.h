@@ -25,7 +25,6 @@
 #ifndef SPIDEVICE_H_
 #define SPIDEVICE_H_
 #include <string>
-#include <stdint.h>
 #include "BusDevice.h"
 
 #define SPI_PATH "/dev/spidev" /**< The general path to an SPI device **/
