@@ -48,16 +48,16 @@ public:
 	};
 
 public:
-	SPIDevice(const unsigned int bus, const unsigned int device, uint_fast16_t speed=500000);
+	SPIDevice(const uint_fast8_t bus, const uint_fast8_t device, uint_fast16_t speed=500000);
 	virtual ~SPIDevice();
-	virtual unsigned const char readRegister(const unsigned int registerAddress)=0;
-	virtual unsigned const char* readRegisters(const unsigned int number, const unsigned int fromAddress=0)=0;
-	virtual const int writeRegister(const unsigned int registerAddress, const unsigned char value)=0;
-	virtual const int write(const unsigned char value); //Only for debug
-	virtual void debugDumpRegisters(const unsigned int number = 0xff);
-	virtual const int setSpeed(uint32_t speed);
-	virtual const int setMode(SPIDevice::SPIMODE mode);
-	virtual const int setBitsPerWord(uint8_t bits);
+	virtual const uint_fast8_t readRegister(const uint_fast16_t registerAddress)=0;
+	virtual const uint_fast8_t* readRegisters(const uint_fast8_t number, const uint_fast16_t fromAddress=0)=0;
+	virtual const int_fast8_t writeRegister(const uint_fast16_t registerAddress, const uint_fast8_t value)=0;
+	virtual const int_fast8_t write(const uint_fast8_t value); //Only for debug
+	virtual void debugDumpRegisters(const uint_fast16_t number = 0xff); //Registerwert ausgeben
+	virtual const int_fast8_t setSpeed(const uint32_t speed);
+	virtual const int_fast8_t setMode(const SPIDevice::SPIMODE mode);
+	virtual const int_fast8_t setBitsPerWord(const uint8_t bits);
 	virtual inline const uint_fast8_t GetBitsPerWord(){return bits;}
 	virtual inline const uint_fast8_t GetSpeed(){return speed;}
 	virtual inline const uint_fast8_t GetDelay(){return delay;}
@@ -70,8 +70,8 @@ private:
 	uint_fast16_t delay;   //!< The transfer delay in usecs
 	string filename;  //!< The precise filename for the SPI device
 	uint_fast8_t active=false;
-	virtual int const transfer(unsigned char read[], unsigned char write[], int length);
-	virtual int const open();
+	virtual const int_fast8_t transfer(const uint_fast8_t send[], uint_fast8_t receive[], const uint_fast32_t length);
+	virtual const int_fast8_t open();
 	virtual void close();
 };
 

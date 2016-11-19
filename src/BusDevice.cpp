@@ -29,7 +29,7 @@
  * @param bus the bus number
  * @param device the device number
  */
-BusDevice::BusDevice(const unsigned int bus, const unsigned int device)
+BusDevice::BusDevice(const uint_fast8_t bus, const uint_fast8_t device)
 	:bus(bus),
 	 device(device)
 {
@@ -39,4 +39,7 @@ BusDevice::BusDevice(const unsigned int bus, const unsigned int device)
 /**
  * Destructor is unused
  */
-BusDevice::~BusDevice() {}
+BusDevice::~BusDevice()
+{
+
+}
