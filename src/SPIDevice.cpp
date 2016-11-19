@@ -261,3 +261,9 @@ const int_fast8_t SPIDevice::write(const uint_fast8_t value) const
 
 	return transfer(&value, &null_return, sizeof(value));
 }
+
+const int_fast8_t SPIDevice::write(const uint_fast8_t value[], const uint_fast8_t length) const
+{
+	uint_fast8_t Return[length];
+	return transfer(value,Return,length);
+}
