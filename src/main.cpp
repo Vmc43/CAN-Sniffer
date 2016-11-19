@@ -7,10 +7,14 @@
 //============================================================================
 
 #include <iostream>
+#include "MCP2515.h"
+
 using namespace std;
 
 int main()
 {
-	cout << "!!!Hello World!!!" << endl; // prints !!!Hello World!!!
+	//MCP2515 Test(0,0);
+
+	cout << "!!!Hello World!!!" << endl;
 	return 0;
 }
