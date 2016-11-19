@@ -22,6 +22,7 @@ private:
 	virtual const int_fast8_t writeRegister(const uint_fast16_t registerAddress, const uint_fast8_t value) const;
 	virtual const uint_fast8_t readRegister(const uint_fast16_t registerAddress) const;
 	virtual const uint_fast8_t* readRegisters(const uint_fast8_t number, const uint_fast16_t fromAddress=0) const;
+	virtual const int_fast8_t Bit_Modify(const uint_fast8_t adress, const uint_fast8_t mask, const uint_fast8_t data) const;
 	//Spezialisierung nur für MCP2515
 	virtual const int_fast8_t writeRegister(const uint_fast8_t registerAddress, const uint_fast8_t value) const;
 	virtual const uint_fast8_t readRegister(const uint_fast8_t registerAddress) const;

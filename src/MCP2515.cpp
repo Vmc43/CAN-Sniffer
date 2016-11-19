@@ -24,12 +24,12 @@ MCP2515::~MCP2515()
 const uint_fast8_t MCP2515::readRegister(const uint_fast8_t registerAddress) const
 {
 	const uint_fast8_t send[2]{SPI_READ,registerAddress};
-	uint_fast8_t recive[2]{0};
+	uint_fast8_t receive[2]{0};
 	uint_fast8_t Return=0xFF;
 
-	if(transfer(send,recive,2)!=-1)
+	if(transfer(send,receive,2)!=-1)
 	{
-		Return=recive[0];
+		Return=receive[0];
 	}
 	return Return;
 }
@@ -37,13 +37,13 @@ const uint_fast8_t MCP2515::readRegister(const uint_fast8_t registerAddress) con
 const uint_fast8_t* MCP2515::readRegisters(const uint_fast8_t number, const uint_fast8_t fromAddress) const
 {
 	const uint_fast8_t send[number+1]{SPI_READ,fromAddress};
-	uint_fast8_t recive[number+1];
+	uint_fast8_t receive[number+1];
 	uint_fast8_t* Return=NULL;
 
-	if(transfer(send,recive,sizeof(send))!=-1)
+	if(transfer(send,receive,sizeof(send))!=-1)
 	{
 		Return = new uint_fast8_t[number];
-		memcpy(Return,recive,number);
+		memcpy(Return,receive,number);
 	}
 	return Return;
 }
@@ -51,9 +51,9 @@ const uint_fast8_t* MCP2515::readRegisters(const uint_fast8_t number, const uint
 const int_fast8_t MCP2515::writeRegister(const uint_fast8_t registerAddress, const uint_fast8_t value) const
 {
 	const uint_fast8_t send[3]={SPI_WRITE,registerAddress,value}; //Kommando, Adresse, Wert
-	uint_fast8_t recive[3]; //Nur zu Dummy-Zwecken, es kommt nichts von Chip zurück
+	uint_fast8_t receive[3]; //Nur zu Dummy-Zwecken, es kommt nichts von Chip zurück
 
-	return transfer(send,recive,3);
+	return transfer(send,receive,3);
 }
 
 const int_fast8_t MCP2515::writeRegister(const uint_fast16_t registerAddress, const uint_fast8_t value) const
@@ -93,4 +93,12 @@ const uint_fast8_t* MCP2515::readRegisters(const uint_fast8_t number, const uint
 		return readRegisters(number,static_cast<uint_fast8_t>(fromAddress));
 	}
 	return NULL;
+}
+
+const int_fast8_t MCP2515::Bit_Modify(const uint_fast8_t adress, const uint_fast8_t mask, const uint_fast8_t data) const
+{
+	const uint_fast8_t send[4]={SPI_BIT_MODIFY,adress,mask,data};
+	uint_fast8_t receive[4];
+
+	return transfer(send,receive,4);
 }
