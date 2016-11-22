@@ -41,6 +41,8 @@ private:
 	virtual const int_fast8_t Init();
 	virtual void Reset() const;
 	virtual void GoInConfigMode() const;
+	virtual void GoInNormalMode() const;
+	virtual void ChangeBitrateRegister(const uint_fast8_t CNF1_Value, const uint_fast8_t CNF2_Value, const uint_fast8_t CNF3_Value, const uint_fast16_t Bitrate);
 
 	//Attribute:
 	uint_fast32_t Bitrate_CAN=0;	//in kB/s
