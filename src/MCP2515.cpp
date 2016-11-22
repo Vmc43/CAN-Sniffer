@@ -9,12 +9,15 @@
 #include "mcp2515_defs.h"
 #include <iostream>
 #include <cstring> //Für memcpy() --> C-Style!
+#include <chrono>
+#include <thread>
 
-MCP2515::MCP2515(const uint_fast8_t bus, const uint_fast8_t device, const float Quartz_Speed, const uint_fast32_t Bitrate, const uint_fast16_t SPI_speed)
+MCP2515::MCP2515(const uint_fast8_t bus, const uint_fast8_t device, const float Quartz_Speed, const uint_fast32_t Bitrate_CAN, const uint_fast16_t SPI_speed)
 	:SPIDevice(bus,device,SPI_speed),
 	 Quartz_Speed(Quartz_Speed)
 {
-	MCP2515::Bitrate=Bitrate;
+	MCP2515::Bitrate_CAN=Bitrate_CAN;
+	Init();
 }
 
 MCP2515::~MCP2515()
@@ -25,7 +28,7 @@ MCP2515::~MCP2515()
 const uint_fast8_t MCP2515::readRegister(const uint_fast8_t registerAddress) const
 {
 	const uint_fast8_t send[2]{SPI_READ,registerAddress};
-	uint_fast8_t receive[2]{0};
+	uint_fast8_t receive[2];
 	uint_fast8_t Return=0xFF;
 
 	if(transfer(send,receive,2)!=-1)
@@ -106,15 +109,65 @@ const int_fast8_t MCP2515::Bit_Modify(const uint_fast8_t adress, const uint_fast
 
 const int_fast8_t MCP2515::Init()
 {
-
+	Reset();
 }
 
-void MCP2515::ChangeBitRate(const uint_fast32_t Bitrate)
+void MCP2515::ChangeBitRate(const uint_fast16_t Bitrate)
+{
+	if(Bitrate>1000)
+	{
+		cerr<<"Baudrate zu groß!"<<endl;
+		return;
+	}
+
+	//Unterscheidung nach verschiedenen Quarzen...
+
+	switch(Bitrate)
+	{
+	//Berechnung: https://www.kvaser.com/support/calculators/bit-timing-calculator/
+	case 25:
+		writeRegister((uint_fast8_t)CNF1,0x0F);
+		writeRegister((uint_fast8_t)CNF2,0xB6);
+		Bit_Modify(CNF3,0x07,0x04);
+		break;
+	case 125:
+		writeRegister((uint_fast8_t)CNF1,0x0F);
+		writeRegister((uint_fast8_t)CNF2,0xB6);
+		Bit_Modify(CNF3,0x07,0x04);
+		break;
+	case 250:
+
+		break;
+	case 500:
+
+		break;
+	case 1000:
+
+		break;
+	default:
+		cerr<<"Ungültige Baudrate eingestellt es geht nur 25,125,250,500 und 1000kB/s"<<endl;
+		break;
+	}
+}
+
+void MCP2515::ChangeCLKoutPin(const uint_fast8_t OnOffFlag) const
 {
 
 }
 
-void MCP2515::ChangeCLKoutPin(const uint_fast8_t OnOffFlag) const
+const uint_fast8_t MCP2515::Read_Rx_Status() const
+{
+	return readRegister((uint_fast8_t)SPI_RX_STATUS);
+}
+
+void MCP2515::Reset() const
+{
+	SPIDevice::write(SPI_RESET);
+	//Warten bis Reset vorbei
+	std::this_thread::sleep_for(std::chrono::milliseconds(5));
+}
+
+void MCP2515::GoInConfigMode() const
 {
 
 }

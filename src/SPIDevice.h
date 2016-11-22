@@ -28,7 +28,7 @@ public:
 	virtual const uint_fast8_t readRegister(const uint_fast16_t registerAddress)const=0;
 	virtual const uint_fast8_t* readRegisters(const uint_fast8_t number, const uint_fast16_t fromAddress=0)const=0;
 	virtual const int_fast8_t writeRegister(const uint_fast16_t registerAddress, const uint_fast8_t value)const=0;
-	virtual const int_fast8_t write(const uint_fast8_t value) const; //Only for debug
+	virtual const int_fast8_t write(const uint_fast8_t value) const;
 	virtual const int_fast8_t write(const uint_fast8_t value[], const uint_fast8_t length) const;
 	virtual void debugDumpRegisters(const uint_fast16_t number = 0xff) const; //Registerwert ausgeben
 	virtual const int_fast8_t setSpeed(const uint32_t speed);

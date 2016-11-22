@@ -19,6 +19,7 @@ using namespace std;
 int main()
 {
 	MCP2515 Test(0,0,Quartz_Speed,Bitrate,SPI_SPEED);
+	Test.Read_Rx_Status();
 
 	cout<<"Bitrate: "<<Test.GetBitRate()<<endl;
 	return 0;
