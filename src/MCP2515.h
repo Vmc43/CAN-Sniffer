@@ -24,6 +24,12 @@ public:
 	virtual void ChangeBitRate(const uint_fast16_t Bitrate);
 	virtual void ChangeCLKoutPin(const uint_fast8_t OnOffFlag) const;
 	virtual const uint_fast8_t Read_Rx_Status() const;
+	//TODO Wakeup-Filter an und aus funktion (Schaltet Low-Pass filter an Rx leitung um versehentliches Aufwachen zu verhindern (in Sleepmode))
+	//TODO FilterSetzfunktion() einmal für Standard und extended Übergabeparmeter sind (Filter,Maske==Filter)
+	//TODO Filteraktivierfunktion(buffer,filter_von_buffer) (ectl als private funktion filtername direkt und andere fkt nur als switch-case)
+	//TODO RXPufferInterruptein und aus funktion, Übergabe jeweiliger puffer (0,1)
+	//TODO Universaler InterruptPin nur als RX-Interrupt setzen/ausmachen
+
 
 private:
 	//Methoden:
@@ -40,8 +46,8 @@ private:
 	virtual const int_fast8_t Bit_Modify(const uint_fast8_t adress, const uint_fast8_t mask, const uint_fast8_t data) const;
 	virtual const int_fast8_t Init();
 	virtual void Reset() const;
-	virtual void GoInConfigMode() const;
-	virtual void GoInNormalMode() const;
+	virtual void GoInConfigMode();
+	virtual void GoInNormalMode();
 	virtual void ChangeBitrateRegister(const uint_fast8_t CNF1_Value, const uint_fast8_t CNF2_Value, const uint_fast8_t CNF3_Value, const uint_fast16_t Bitrate);
 
 	//Attribute:

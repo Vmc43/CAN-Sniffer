@@ -202,14 +202,16 @@ void MCP2515::Reset() const
 	std::this_thread::sleep_for(std::chrono::milliseconds(5));
 }
 
-void MCP2515::GoInConfigMode() const
+void MCP2515::GoInConfigMode()
 {
-
+	Bit_Modify(CANCTRL,0xE0,0x04);
+	Active_Flag=false;
 }
 
-void MCP2515::GoInNormalMode() const
+void MCP2515::GoInNormalMode()
 {
-
+	Bit_Modify(CANCTRL,0xE0,0x00);
+	Active_Flag=true;
 }
 
 void MCP2515::ChangeBitrateRegister(const uint_fast8_t CNF1_Value, const uint_fast8_t CNF2_Value, const uint_fast8_t CNF3_Value, const uint_fast16_t Bitrate)
