@@ -24,12 +24,12 @@ public:
 	virtual void ChangeBitRate(const uint_fast16_t Bitrate);
 	virtual void ChangeCLKoutPin(const uint_fast8_t OnOffFlag) const;
 	virtual const uint_fast8_t Read_Rx_Status() const;
-	//TODO Wakeup-Filter an und aus funktion (Schaltet Low-Pass filter an Rx leitung um versehentliches Aufwachen zu verhindern (in Sleepmode))
 	//TODO FilterSetzfunktion() einmal für Standard und extended Übergabeparmeter sind (Filter,Maske==Filter)
-	//TODO Filteraktivierfunktion(buffer,filter_von_buffer) (ectl als private funktion filtername direkt und andere fkt nur als switch-case)
-	//TODO RXPufferInterruptein und aus funktion, Übergabe jeweiliger puffer (0,1)
-	//TODO Universaler InterruptPin nur als RX-Interrupt setzen/ausmachen
-
+	//TODO Filteraktivierfunktion(buffer,filter_von_buffer) (evtl als private funktion filtername direkt und andere fkt nur als switch-case)
+	//TODO Init-Fkt() allgemein halten und dafür im Konstruktor nach Art der Initalisierung (Interruptpins) unterscheiden
+	//TODO Konstruktor aufbohren (Interruptpins)
+	//TODO Getter-Methoden für Flags???
+	//TODO Sleepfunktion, oder besser erst wenn soweit erweitert das Pin für CAN-Transciver funzt
 
 private:
 	//Methoden:
@@ -49,11 +49,19 @@ private:
 	virtual void GoInConfigMode();
 	virtual void GoInNormalMode();
 	virtual void ChangeBitrateRegister(const uint_fast8_t CNF1_Value, const uint_fast8_t CNF2_Value, const uint_fast8_t CNF3_Value, const uint_fast16_t Bitrate);
+	virtual void SetInterruptPinOnlyForRecive(const uint_fast8_t state=true);
+	virtual void SetInterruptPinRegister(const uint_fast8_t Value); //Wert nach CANINTE-Register in Datenblatt
+	virtual void Set_RXBx_Interrupt_Pin(const uint_fast8_t Buffer, const uint_fast8_t state=true);
+	virtual void Set_Wake_Up_Filer(const uint_fast8_t state); //Schaltet Filter an CAN-Leitungen um versehentliches Aufwachen im sleppmode zu verhindern
 
 	//Attribute:
 	uint_fast32_t Bitrate_CAN=0;	//in kB/s
 	uint_fast8_t Active_Flag=false;
 	const float Quartz_Speed;		//in MHz
+	uint_fast8_t Interrupt_Pin_Register=0;
+	uint_fast8_t RXB0_InterruptPin_Flag=false;
+	uint_fast8_t RXB1_InterruptPin_Flag=false;
+	uint_fast8_t Wake_Up_Filter_Flag=false;
 };
 
 #endif /* MCP2515_H_ */
