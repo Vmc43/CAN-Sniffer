@@ -111,7 +111,6 @@ const int_fast8_t MCP2515::Init()
 {
 	Reset();
 	ChangeBitRate(Bitrate_CAN);
-	SetInterruptPinOnlyForRecive();
 }
 
 void MCP2515::ChangeBitRate(const uint_fast16_t Bitrate)
@@ -188,7 +187,21 @@ void MCP2515::ChangeBitRate(const uint_fast16_t Bitrate)
 
 void MCP2515::ChangeCLKoutPin(const uint_fast8_t OnOffFlag) const
 {
+	//Geht nur im Config-mode
+	uint_fast8_t Active_Flag_vorher=false;
+	if(Active_Flag)
+	{
+		GoInConfigMode();
+		Active_Flag_vorher=true;
+	}
 
+	//Eigentliches Blabla
+	//TODO CLKOUT-AN/AUS-Fkt
+
+	if(Active_Flag_vorher)
+	{
+		GoInNormalMode();
+	}
 }
 
 const uint_fast8_t MCP2515::Read_Rx_Status() const
@@ -279,6 +292,14 @@ void MCP2515::Set_RXBx_Interrupt_Pin(const uint_fast8_t Buffer, const uint_fast8
 
 void MCP2515::Set_Wake_Up_Filer(const uint_fast8_t state)
 {
+	//Geht nur im Config-mode
+	uint_fast8_t Active_Flag_vorher=false;
+	if(Active_Flag)
+	{
+		GoInConfigMode();
+		Active_Flag_vorher=true;
+	}
+
 	if(state==true)
 	{
 		Bit_Modify(CNF3,64,64);
@@ -288,5 +309,48 @@ void MCP2515::Set_Wake_Up_Filer(const uint_fast8_t state)
 	{
 		Bit_Modify(CNF3,64,0);
 		Wake_Up_Filter_Flag=false;
+	}
+
+	if(Active_Flag_vorher)
+	{
+		GoInNormalMode();
+	}
+}
+
+void MCP2515::SetFilterStandard(const uint_fast8_t Filter, const uint_fast16_t Mask)
+{
+	//Geht nur im Config-mode
+	uint_fast8_t Active_Flag_vorher=false;
+	if(Active_Flag)
+	{
+		GoInConfigMode();
+		Active_Flag_vorher=true;
+	}
+
+	//Eigentliches Blabla
+	//TODO Standardfilterfunktion
+
+	if(Active_Flag_vorher)
+	{
+		GoInNormalMode();
+	}
+}
+
+void MCP2515::SetFilterExtended(const uint_fast8_t Filter, const uint_fast32_t Mask)
+{
+	//Geht nur im Config-mode
+	uint_fast8_t Active_Flag_vorher=false;
+	if(Active_Flag)
+	{
+		GoInConfigMode();
+		Active_Flag_vorher=true;
+	}
+
+	//Eigentliches Blabla
+	//TODO Extendedfilterfunktion
+
+	if(Active_Flag_vorher)
+	{
+		GoInNormalMode();
 	}
 }

@@ -24,6 +24,8 @@ public:
 	virtual void ChangeBitRate(const uint_fast16_t Bitrate);
 	virtual void ChangeCLKoutPin(const uint_fast8_t OnOffFlag) const;
 	virtual const uint_fast8_t Read_Rx_Status() const;
+	virtual void SetFilterStandard(const uint_fast8_t Filter, const uint_fast16_t Mask);
+	virtual void SetFilterExtended(const uint_fast8_t Filter, const uint_fast32_t Mask);
 	//TODO FilterSetzfunktion() einmal für Standard und extended Übergabeparmeter sind (Filter,Maske==Filter)
 	//TODO Filteraktivierfunktion(buffer,filter_von_buffer) (evtl als private funktion filtername direkt und andere fkt nur als switch-case)
 	//TODO Init-Fkt() allgemein halten und dafür im Konstruktor nach Art der Initalisierung (Interruptpins) unterscheiden
@@ -57,11 +59,22 @@ private:
 	//Attribute:
 	uint_fast32_t Bitrate_CAN=0;	//in kB/s
 	uint_fast8_t Active_Flag=false;
-	const float Quartz_Speed;		//in MHz
+	const float Quartz_Speed=0;		//in MHz
+
+	//Interrupt Flags
 	uint_fast8_t Interrupt_Pin_Register=0;
 	uint_fast8_t RXB0_InterruptPin_Flag=false;
 	uint_fast8_t RXB1_InterruptPin_Flag=false;
+
 	uint_fast8_t Wake_Up_Filter_Flag=false;
+
+	//Filter
+	uint_fast32_t FilterMaskFilter0=0;
+	uint_fast32_t FilterMaskFilter1=0;
+	uint_fast32_t FilterMaskFilter2=0;
+	uint_fast32_t FilterMaskFilter3=0;
+	uint_fast32_t FilterMaskFilter4=0;
+	uint_fast32_t FilterMaskFilter5=0;
 };
 
 #endif /* MCP2515_H_ */
