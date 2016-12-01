@@ -12,12 +12,31 @@
 #include <chrono>
 #include <thread>
 
-MCP2515::MCP2515(const uint_fast8_t bus, const uint_fast8_t device, const float Quartz_Speed, const uint_fast32_t Bitrate_CAN, const uint_fast16_t SPI_speed)
+MCP2515::MCP2515(const uint_fast8_t bus, const uint_fast8_t device, const float Quartz_Speed, const uint_fast32_t Bitrate_CAN,const uint_fast8_t GlobalInterruptPinNr, const uint_fast16_t SPI_speed)
 	:SPIDevice(bus,device,SPI_speed),
 	 Quartz_Speed(Quartz_Speed)
 {
 	MCP2515::Bitrate_CAN=Bitrate_CAN;
 	Init();
+
+	//Pinkonfiguration:
+	SetInterruptPinOnlyForRecive();
+
+	GoInNormalMode();
+}
+
+MCP2515::MCP2515(const uint_fast8_t bus, const uint_fast8_t device, const float Quartz_Speed, const uint_fast32_t Bitrate_CAN, const uint_fast8_t RxPuffer0Pin, const uint_fast8_t RxPuffer1Pin, const uint_fast16_t SPI_speed)
+	:SPIDevice(bus,device,SPI_speed),
+	 Quartz_Speed(Quartz_Speed)
+{
+	MCP2515::Bitrate_CAN=Bitrate_CAN;
+	Init();
+
+	//Pinkonfiguration:
+	Set_RXBx_Interrupt_Pin(0);	//Interrupt für Puffer 0 auf MCP2515 aktivieren
+	Set_RXBx_Interrupt_Pin(1);	//Interrupt für Puffer 1 auf MCP2515 aktivieren
+
+	GoInNormalMode();
 }
 
 MCP2515::~MCP2515()
@@ -107,10 +126,15 @@ const int_fast8_t MCP2515::Bit_Modify(const uint_fast8_t adress, const uint_fast
 	return transfer(send,receive,4);
 }
 
-const int_fast8_t MCP2515::Init()
+void MCP2515::Init()
 {
 	Reset();
 	ChangeBitRate(Bitrate_CAN);
+
+	//TODO Sauberes Init
+	//Alle Filter aus:
+	Bit_Modify(RXB0CTRL,0b1100000,0b1100000); //Buffer0
+	Bit_Modify(RXB1CTRL,0b1100000,0b1100000); //Buffer1
 }
 
 void MCP2515::ChangeBitRate(const uint_fast16_t Bitrate)
@@ -224,9 +248,6 @@ void MCP2515::ChangeCLKoutPin(const uint_fast8_t OnOffFlag, const uint_fast8_t d
 			break;
 	}
 
-	//Eigentliches Blabla
-	//TODO CLKOUT-AN/AUS-Fkt
-
 	if(Active_Flag_vorher)
 	{
 		GoInNormalMode();
@@ -269,25 +290,21 @@ void MCP2515::SetInterruptPinOnlyForRecive(const uint_fast8_t state)
 {
 	if(state==true)
 	{
-		SetInterruptPinRegister(3);
+		writeRegister((uint_fast8_t)CANINTE,3);
+		Interrupt_Pin_Register=true;
 	}
 	else
 	{
-		SetInterruptPinRegister(0);
+		writeRegister((uint_fast8_t)CANINTE,0);
+		Interrupt_Pin_Register=false;
 	}
-}
-
-void MCP2515::SetInterruptPinRegister(const uint_fast8_t Value)
-{
-	writeRegister((uint_fast8_t)CANINTE,Value);
-	Interrupt_Pin_Register=Value;
 }
 
 void MCP2515::Set_RXBx_Interrupt_Pin(const uint_fast8_t Buffer, const uint_fast8_t state)
 {
-	if(Buffer!=0||Buffer!=1)
+	if((Buffer!=0||Buffer!=1) && IsBool(state))
 	{
-		cerr<<"Set_RXBx_Interrupt_Pin falschenumbern Puffer übergeben!"<<endl;
+		cerr<<"Set_RXBx_Interrupt_Pin falsche Nummern für Puffer übergeben!"<<endl;
 		return;
 	}
 
@@ -346,8 +363,20 @@ void MCP2515::Set_Wake_Up_Filer(const uint_fast8_t state)
 	}
 }
 
-void MCP2515::SetFilterStandard(const uint_fast8_t Filter, const uint_fast16_t Mask)
+void MCP2515::SetFilterStandard(const uint_fast8_t FilterNr, const uint_fast16_t Filter)
 {
+	if(!(FilterNr>=0 && FilterNr<=5))
+	{
+		cerr<<"Übergabewert FilterNr in SetFilterStandard muss zwischen 0 und 5 sein!"<<endl;
+		return;
+	}
+
+	if(Filter>2048)
+	{
+		cerr<<"Filter darf nicht größer als 11bit (2048) sein!"<<endl;
+		return;
+	}
+
 	//Geht nur im Config-mode
 	uint_fast8_t Active_Flag_vorher=false;
 	if(Active_Flag)
@@ -356,8 +385,46 @@ void MCP2515::SetFilterStandard(const uint_fast8_t Filter, const uint_fast16_t M
 		Active_Flag_vorher=true;
 	}
 
-	//Eigentliches Blabla
-	//TODO Standardfilterfunktion
+	//Registerwerte zusammenbasteln:
+	const uint_fast8_t HighTeil = Filter >> 3;	//Untere 3 Bit nach rechts rausshifften
+	const uint_fast8_t LowTeil = Filter << 5;		//Obere 5 Bits werden überschrieben und die unteren 3 Bits von Mask sind die oberen 3 eines 8 Bit Registers
+
+	switch(FilterNr)
+		{
+			case 0:
+				writeRegister((uint_fast8_t)RXF0SIDH,HighTeil);
+				writeRegister((uint_fast8_t)RXF0SIDL,LowTeil);
+				FilterMaskFilter0=Filter;
+				break;
+			case 1:
+				writeRegister((uint_fast8_t)RXF1SIDH,HighTeil);
+				writeRegister((uint_fast8_t)RXF1SIDL,LowTeil);
+				FilterMaskFilter1=Filter;
+				break;
+			case 2:
+				writeRegister((uint_fast8_t)RXF2SIDH,HighTeil);
+				writeRegister((uint_fast8_t)RXF2SIDL,LowTeil);
+				FilterMaskFilter2=Filter;
+				break;
+			case 3:
+				writeRegister((uint_fast8_t)RXF3SIDH,HighTeil);
+				writeRegister((uint_fast8_t)RXF3SIDL,LowTeil);
+				FilterMaskFilter3=Filter;
+				break;
+			case 4:
+				writeRegister((uint_fast8_t)RXF4SIDH,HighTeil);
+				writeRegister((uint_fast8_t)RXF4SIDL,LowTeil);
+				FilterMaskFilter4=Filter;
+				break;
+			case 5:
+				writeRegister((uint_fast8_t)RXF5SIDH,HighTeil);
+				writeRegister((uint_fast8_t)RXF5SIDL,LowTeil);
+				FilterMaskFilter5=Filter;
+				break;
+			default:
+				cerr<<"Ungültige Filternummer an SetFilterStandard übergeben, darf nur zwischen 0 und 5 sein"<<endl;
+				break;
+		}
 
 	if(Active_Flag_vorher)
 	{
@@ -365,8 +432,20 @@ void MCP2515::SetFilterStandard(const uint_fast8_t Filter, const uint_fast16_t M
 	}
 }
 
-void MCP2515::SetFilterExtended(const uint_fast8_t Filter, const uint_fast32_t Mask)
+void MCP2515::SetFilterExtended(const uint_fast8_t FilterNr, const uint_fast32_t Filter)
 {
+	if(!(FilterNr>=0 && FilterNr<=5))
+	{
+		cerr<<"Übergabewert FilterNr in SetFilterStandard muss zwischen 0 und 5 sein!"<<endl;
+		return;
+	}
+
+	if(Filter>2048)
+	{
+		cerr<<"Filter darf nicht größer als 11bit (2048) sein!"<<endl;
+		return;
+	}
+
 	//Geht nur im Config-mode
 	uint_fast8_t Active_Flag_vorher=false;
 	if(Active_Flag)
@@ -398,6 +477,7 @@ const uint_fast8_t MCP2515::IsBool(const uint_fast8_t& number) const
 
 void MCP2515::Change_CLKOUT_PIN_REGISTER(const uint_fast8_t CLKEN_Bit, const uint_fast8_t CLKPRE) const
 {
+	//TODO Bei Reset Teilervariable wieder auf 8 Stellen
 	if(IsBool(CLKEN_Bit))
 	{
 		uint_fast8_t Temp=CLKEN_Bit;
@@ -409,5 +489,50 @@ void MCP2515::Change_CLKOUT_PIN_REGISTER(const uint_fast8_t CLKEN_Bit, const uin
 	else
 	{
 		cerr<<"CLKEN_Bit in Change_CLKOUT_PIN_REGISTER() darf nur true oder false sein!"<<endl;
+	}
+}
+
+void MCP2515::SetMaskStandard(const uint_fast8_t MaskNr, const uint_fast16_t Mask)
+{
+	if(MaskNr!=0 || MaskNr!=1)
+	{
+		cerr<<"Übergabewert MaskNr in SetFilterStandard darf nur 0 oder 1 sein!"<<endl;
+		return;
+	}
+
+	if(Mask>2048)
+	{
+		cerr<<"Maske darf nicht größer als 11bit (2048) sein!"<<endl;
+		return;
+	}
+
+	//Geht nur im Config-mode
+	uint_fast8_t Active_Flag_vorher=false;
+	if(Active_Flag)
+	{
+		GoInConfigMode();
+		Active_Flag_vorher=true;
+	}
+
+	//Registerwerte zusammenbasteln:
+	const uint_fast8_t HighTeil = Mask >> 3;	//Untere 3 Bit nach rechts rausshifften
+	const uint_fast8_t LowTeil = Mask << 5;		//Obere 5 Bits werden überschrieben und die unteren 3 Bits von Mask sind die oberen 3 eines 8 Bit Registers
+
+	if(MaskNr==0)
+	{
+		writeRegister((uint_fast8_t)RXM0SIDH,HighTeil);
+		writeRegister((uint_fast8_t)RXM0SIDL,LowTeil);
+		Maske0=Mask;
+	}
+	else
+	{
+		writeRegister((uint_fast8_t)RXM1SIDH,HighTeil);
+		writeRegister((uint_fast8_t)RXM1SIDL,LowTeil);
+		Maske1=Mask;
+	}
+
+	if(Active_Flag_vorher)
+	{
+		GoInNormalMode();
 	}
 }

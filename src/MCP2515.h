@@ -15,7 +15,8 @@ using namespace std;
 class MCP2515:public SPIDevice
 {
 public:
-	MCP2515(const uint_fast8_t bus, const uint_fast8_t device, const float Quartz_Speed, const uint_fast32_t Bitrate_CAN, const uint_fast16_t SPI_speed=500000);
+	MCP2515(const uint_fast8_t bus, const uint_fast8_t device, const float Quartz_Speed, const uint_fast32_t Bitrate_CAN, const uint_fast8_t GlobalInterruptPinNr, const uint_fast16_t SPI_speed=500000);
+	MCP2515(const uint_fast8_t bus, const uint_fast8_t device, const float Quartz_Speed, const uint_fast32_t Bitrate_CAN, const uint_fast8_t RxPuffer0Pin, const uint_fast8_t RxPuffer1Pin, const uint_fast16_t SPI_speed=500000);
 	virtual ~MCP2515();
 
 	virtual inline const uint_fast32_t GetBitRate()const{return Bitrate_CAN;}
@@ -24,14 +25,24 @@ public:
 	virtual void ChangeBitRate(const uint_fast16_t Bitrate);
 	virtual void ChangeCLKoutPin(const uint_fast8_t OnOffFlag, const uint_fast8_t divider=1);
 	virtual const uint_fast8_t Read_Rx_Status() const;
-	virtual void SetFilterStandard(const uint_fast8_t Filter, const uint_fast16_t Mask);
-	virtual void SetFilterExtended(const uint_fast8_t Filter, const uint_fast32_t Mask);
-	//TODO FilterSetzfunktion() einmal für Standard und extended Übergabeparmeter sind (Filter,Maske==Filter)
-	//TODO Filteraktivierfunktion(buffer,filter_von_buffer) (evtl als private funktion filtername direkt und andere fkt nur als switch-case)
+	virtual void SetFilterStandard(const uint_fast8_t FilterNr, const uint_fast16_t Filter=0);
+	virtual void SetMaskStandard(const uint_fast8_t MaskNr, const uint_fast16_t Mask=0);
+	virtual void SetFilterExtended(const uint_fast8_t FilterNr, const uint_fast32_t Filter=0);
+	//virtual void SetMaskExtended(const uint_fast8_t MaskNr, const uint_fast16_t Mask=0);
+	//TODO FilterSetzfunktion() einmal für Standard und extended Übergabeparmeter sind (FilterNr,Filter)
+	//TODO MaskenSetzfunktion() einmal für Standard und extended Übergabeparmeter sind (MaskenNr,Maske)
+	//TODO Filteraktivierfunktion(empfangsbuffer,filter_von_buffer,Welche Maske) (evtl als private funktion filtername direkt und andere fkt nur als switch-case)
 	//TODO Init-Fkt() allgemein halten und dafür im Konstruktor nach Art der Initalisierung (Interruptpins) unterscheiden
 	//TODO Konstruktor aufbohren (Interruptpins)
 	//TODO Getter-Methoden für Flags???
 	//TODO Sleepfunktion, oder besser erst wenn soweit erweitert das Pin für CAN-Transciver funzt
+
+	//TODO Pollthread mit Callbackfkt bei Thread Erstellung
+	//TODO Flag in welchen Modus (Unterscheidung durch Flag), 2x Pollthreadobjekt
+
+	//Infos:
+	//TODO Einstellen ob nur Standard oder extended empfangen oder beides in RXM0 und RXM1 in RXB0CTRL bzw RXB1CTRL, welcher Filter für welchen Puffer ist dort auch
+	//TODO Maske0 ist für Puffer0 und Maske1 ist für Puffer1
 
 private:
 	//Methoden:
@@ -46,13 +57,12 @@ private:
 	//Eigene Funktionen
 	virtual const uint_fast8_t Check_Value_Range(const uint_fast16_t number) const;
 	virtual const int_fast8_t Bit_Modify(const uint_fast8_t adress, const uint_fast8_t mask, const uint_fast8_t data) const;
-	virtual const int_fast8_t Init();
+	virtual void Init();
 	virtual void Reset() const;
 	virtual void GoInConfigMode();
 	virtual void GoInNormalMode();
 	virtual void ChangeBitrateRegister(const uint_fast8_t CNF1_Value, const uint_fast8_t CNF2_Value, const uint_fast8_t CNF3_Value, const uint_fast16_t Bitrate);
 	virtual void SetInterruptPinOnlyForRecive(const uint_fast8_t state=true);
-	virtual void SetInterruptPinRegister(const uint_fast8_t Value); //Wert nach CANINTE-Register in Datenblatt
 	virtual void Set_RXBx_Interrupt_Pin(const uint_fast8_t Buffer, const uint_fast8_t state=true);
 	virtual void Set_Wake_Up_Filer(const uint_fast8_t state); //Schaltet Filter an CAN-Leitungen um versehentliches Aufwachen im sleppmode zu verhindern
 	virtual const uint_fast8_t IsBool(const uint_fast8_t& number) const;
@@ -82,6 +92,10 @@ private:
 	uint_fast32_t FilterMaskFilter3=0;
 	uint_fast32_t FilterMaskFilter4=0;
 	uint_fast32_t FilterMaskFilter5=0;
+
+	//Masken:
+	uint_fast32_t Maske0=0;
+	uint_fast32_t Maske1=0;
 };
 
 #endif /* MCP2515_H_ */
