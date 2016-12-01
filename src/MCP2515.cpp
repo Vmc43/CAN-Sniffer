@@ -185,14 +185,43 @@ void MCP2515::ChangeBitRate(const uint_fast16_t Bitrate)
 	}
 }
 
-void MCP2515::ChangeCLKoutPin(const uint_fast8_t OnOffFlag) const
+void MCP2515::ChangeCLKoutPin(const uint_fast8_t OnOffFlag, const uint_fast8_t divider)
 {
+	if((divider!=1 || divider!=2 || divider!=4 || divider!=8) && IsBool(OnOffFlag))
+	{
+		cerr<<"Ungültigen Teiler an ChangeCLKoutPin() übergeben, darf nur 1,2,4 oder 8 sein!"<<endl;
+		return;
+	}
+
 	//Geht nur im Config-mode
 	uint_fast8_t Active_Flag_vorher=false;
 	if(Active_Flag)
 	{
 		GoInConfigMode();
 		Active_Flag_vorher=true;
+	}
+
+	switch(divider)
+	{
+		case 1:
+			Change_CLKOUT_PIN_REGISTER(OnOffFlag,0b00),
+			Teiler_CLKOUT=1;
+			break;
+		case 2:
+			Change_CLKOUT_PIN_REGISTER(OnOffFlag,0b01),
+			Teiler_CLKOUT=2;
+			break;
+		case 4:
+			Change_CLKOUT_PIN_REGISTER(OnOffFlag,0b10),
+			Teiler_CLKOUT=4;
+			break;
+		case 8:
+			Change_CLKOUT_PIN_REGISTER(OnOffFlag,0b11),
+			Teiler_CLKOUT=8;
+			break;
+		default:
+			cerr<<"Ungültigen Teiler an ChangeCLKoutPin() übergeben, darf nur 1,2,4 oder 8 sein!"<<endl;
+			break;
 	}
 
 	//Eigentliches Blabla
@@ -258,7 +287,7 @@ void MCP2515::Set_RXBx_Interrupt_Pin(const uint_fast8_t Buffer, const uint_fast8
 {
 	if(Buffer!=0||Buffer!=1)
 	{
-		cerr<<"Set_RXBx_Interrupt_Pin falschen Puffer übergeben!"<<endl;
+		cerr<<"Set_RXBx_Interrupt_Pin falschenumbern Puffer übergeben!"<<endl;
 		return;
 	}
 
@@ -352,5 +381,33 @@ void MCP2515::SetFilterExtended(const uint_fast8_t Filter, const uint_fast32_t M
 	if(Active_Flag_vorher)
 	{
 		GoInNormalMode();
+	}
+}
+
+const uint_fast8_t MCP2515::IsBool(const uint_fast8_t& number) const
+{
+	if(number==true || number==false)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+void MCP2515::Change_CLKOUT_PIN_REGISTER(const uint_fast8_t CLKEN_Bit, const uint_fast8_t CLKPRE) const
+{
+	if(IsBool(CLKEN_Bit))
+	{
+		uint_fast8_t Temp=CLKEN_Bit;
+		Temp = Temp << 2;
+		Temp |= CLKPRE;
+
+		Bit_Modify(CANCTRL,7,Temp);
+	}
+	else
+	{
+		cerr<<"CLKEN_Bit in Change_CLKOUT_PIN_REGISTER() darf nur true oder false sein!"<<endl;
 	}
 }
