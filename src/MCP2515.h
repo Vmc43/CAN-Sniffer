@@ -9,6 +9,7 @@
 #define MCP2515_H_
 
 #include "SPIDevice.h"
+#include "GPIOPoll.h"
 
 using namespace std;
 
@@ -72,6 +73,9 @@ private:
 	virtual const uint_fast8_t IsBool(const uint_fast8_t& number) const;
 	virtual void Change_CLKOUT_PIN_REGISTER(const uint_fast8_t CLKEN_Bit, const uint_fast8_t CLKPRE) const;
 
+	//Dummy
+	virtual void Dummy();
+
 	//Attribute:
 	const uint_fast32_t Quartz_Speed_Hz=0;	//in Hz
 	uint32_t Bitrate_CAN_Bit_s=0;		//in kB/s
@@ -101,6 +105,10 @@ private:
 	//Masken:
 	uint_fast32_t Maske0=0;
 	uint_fast32_t Maske1=0;
+
+	//GPIO-Poll-Threads:
+	const GPIO_Poll InterruptPin1;
+	const GPIO_Poll InterruptPin2;
 };
 
 #endif /* MCP2515_H_ */

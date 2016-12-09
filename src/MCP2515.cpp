@@ -15,7 +15,9 @@
 MCP2515::MCP2515(const uint_fast8_t bus, const uint_fast8_t device, const uint_fast32_t Quartz_Speed_Hz, const uint_fast32_t Bitrate_CAN_Bit_s,const uint_fast8_t GlobalInterruptPinNr, const uint_fast32_t SPI_speed)
 	:SPIDevice(bus,device,SPI_speed),
 	 Quartz_Speed_Hz(Quartz_Speed_Hz),
-	 Bitrate_CAN_Bit_s(Bitrate_CAN_Bit_s)
+	 Bitrate_CAN_Bit_s(Bitrate_CAN_Bit_s),
+	 InterruptPin1(this),
+	 InterruptPin2(this)
 {
 	//MCP2515::Bitrate_CAN_Bit_s=Bitrate_CAN_Bit_s;
 	Init();
@@ -24,13 +26,13 @@ MCP2515::MCP2515(const uint_fast8_t bus, const uint_fast8_t device, const uint_f
 	SetInterruptPinOnlyForRecive();
 
 	GoInNormalMode();
-
-	uint_fast8_t Test=readRegister((uint_fast8_t)CANCTRL);
 }
 
 MCP2515::MCP2515(const uint_fast8_t bus, const uint_fast8_t device, const uint_fast32_t Quartz_Speed_Hz, const uint_fast32_t Bitrate_CAN_Bit_s, const uint_fast8_t RxPuffer0Pin, const uint_fast8_t RxPuffer1Pin, const uint_fast32_t SPI_speed)
 	:SPIDevice(bus,device,SPI_speed),
-	 Quartz_Speed_Hz(Quartz_Speed_Hz)
+	 Quartz_Speed_Hz(Quartz_Speed_Hz),
+	 InterruptPin1(this),
+	 InterruptPin2(this)
 {
 	MCP2515::Bitrate_CAN_Bit_s=Bitrate_CAN_Bit_s;
 	Init();
@@ -539,4 +541,9 @@ void MCP2515::SetMaskStandard(const uint_fast8_t MaskNr, const uint_fast16_t Mas
 	{
 		GoInNormalMode();
 	}
+}
+
+void MCP2515::Dummy()
+{
+
 }
