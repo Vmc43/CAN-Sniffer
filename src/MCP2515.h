@@ -15,14 +15,14 @@ using namespace std;
 class MCP2515:public SPIDevice
 {
 public:
-	MCP2515(const uint_fast8_t bus, const uint_fast8_t device, const float Quartz_Speed, const uint_fast32_t Bitrate_CAN, const uint_fast8_t GlobalInterruptPinNr, const uint_fast16_t SPI_speed=500000);
-	MCP2515(const uint_fast8_t bus, const uint_fast8_t device, const float Quartz_Speed, const uint_fast32_t Bitrate_CAN, const uint_fast8_t RxPuffer0Pin, const uint_fast8_t RxPuffer1Pin, const uint_fast16_t SPI_speed=500000);
+	MCP2515(const uint_fast8_t bus, const uint_fast8_t device, const uint_fast32_t Quartz_Speed_Hz, const uint_fast32_t Bitrate_CAN_Bit_s, const uint_fast8_t GlobalInterruptPinNr, const uint_fast32_t SPI_speed=500000);
+	MCP2515(const uint_fast8_t bus, const uint_fast8_t device, const uint_fast32_t Quartz_Speed_Hz, const uint_fast32_t Bitrate_CAN_Bit_s, const uint_fast8_t RxPuffer0Pin, const uint_fast8_t RxPuffer1Pin, const uint_fast32_t SPI_speed=500000);
 	virtual ~MCP2515();
 
-	virtual inline const uint_fast32_t GetBitRate()const{return Bitrate_CAN;}
-	virtual inline const uint_fast32_t GetQuartz_Speed()const{return Quartz_Speed;}
+	virtual inline const uint_fast32_t GetBitRate()const{return Bitrate_CAN_Bit_s;}
+	virtual inline const uint_fast32_t GetQuartz_Speed()const{return Quartz_Speed_Hz;}
 	virtual inline const uint_fast8_t IsActive()const{return Active_Flag;}
-	virtual void ChangeBitRate(const uint_fast16_t Bitrate);
+	virtual void ChangeBitRate(const uint_fast32_t Bitrate_Bit_s);
 	virtual void ChangeCLKoutPin(const uint_fast8_t OnOffFlag, const uint_fast8_t divider=1);
 	virtual const uint_fast8_t Read_Rx_Status() const;
 	virtual void SetFilterStandard(const uint_fast8_t FilterNr, const uint_fast16_t Filter=0);
@@ -40,9 +40,13 @@ public:
 	//TODO Pollthread mit Callbackfkt bei Thread Erstellung
 	//TODO Flag in welchen Modus (Unterscheidung durch Flag), 2x Pollthreadobjekt
 
+	//Schönheit
+	//TODO Rückgabewerte der Funktionen auf Sinnhaftigkeit prüfen (bei write und read fkt)
+
 	//Infos:
 	//TODO Einstellen ob nur Standard oder extended empfangen oder beides in RXM0 und RXM1 in RXB0CTRL bzw RXB1CTRL, welcher Filter für welchen Puffer ist dort auch
 	//TODO Maske0 ist für Puffer0 und Maske1 ist für Puffer1
+	//TODO SPI_Längenantwort immer wie in AVR umsetzen bei 2 byte senden und 2 byte empfangen Sendepuffer+2
 
 private:
 	//Methoden:
@@ -55,13 +59,13 @@ private:
 	virtual const uint_fast8_t readRegister(const uint_fast8_t registerAddress) const;
 	virtual const uint_fast8_t* readRegisters(const uint_fast8_t number, const uint_fast8_t fromAddress=0) const;
 	//Eigene Funktionen
-	virtual const uint_fast8_t Check_Value_Range(const uint_fast16_t number) const;
+	virtual const uint_fast8_t Check_Value_Range_16b_in_8b(const uint_fast16_t number) const;
 	virtual const int_fast8_t Bit_Modify(const uint_fast8_t adress, const uint_fast8_t mask, const uint_fast8_t data) const;
 	virtual void Init();
 	virtual void Reset() const;
 	virtual void GoInConfigMode();
 	virtual void GoInNormalMode();
-	virtual void ChangeBitrateRegister(const uint_fast8_t CNF1_Value, const uint_fast8_t CNF2_Value, const uint_fast8_t CNF3_Value, const uint_fast16_t Bitrate);
+	virtual void ChangeBitrateRegister(const uint_fast8_t CNF1_Value, const uint_fast8_t CNF2_Value, const uint_fast8_t CNF3_Value, const uint_fast32_t Bitrate_CAN_Bit_s);
 	virtual void SetInterruptPinOnlyForRecive(const uint_fast8_t state=true);
 	virtual void Set_RXBx_Interrupt_Pin(const uint_fast8_t Buffer, const uint_fast8_t state=true);
 	virtual void Set_Wake_Up_Filer(const uint_fast8_t state); //Schaltet Filter an CAN-Leitungen um versehentliches Aufwachen im sleppmode zu verhindern
@@ -69,8 +73,9 @@ private:
 	virtual void Change_CLKOUT_PIN_REGISTER(const uint_fast8_t CLKEN_Bit, const uint_fast8_t CLKPRE) const;
 
 	//Attribute:
-	uint_fast32_t Bitrate_CAN=0;	//in kB/s
-	const float Quartz_Speed=0;		//in MHz
+	const uint_fast32_t Quartz_Speed_Hz=0;	//in Hz
+	uint32_t Bitrate_CAN_Bit_s=0;		//in kB/s
+
 
 	//Interrupt Flags
 	uint_fast8_t Interrupt_Pin_Register=0;

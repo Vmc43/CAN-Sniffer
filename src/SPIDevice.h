@@ -23,7 +23,7 @@ public:
 	};
 
 public:
-	SPIDevice(const uint_fast8_t bus, const uint_fast8_t device, const uint_fast16_t speed=500000);
+	SPIDevice(const uint_fast8_t bus, const uint_fast8_t device, const uint_fast32_t speed=500000);
 	virtual ~SPIDevice();
 	virtual const uint_fast8_t readRegister(const uint_fast16_t registerAddress)const=0;
 	virtual const uint_fast8_t* readRegisters(const uint_fast8_t number, const uint_fast16_t fromAddress=0)const=0;
@@ -36,7 +36,7 @@ public:
 	virtual const int_fast8_t setBitsPerWord(const uint8_t bits);
 	virtual const int_fast8_t transfer(const uint_fast8_t send[], uint_fast8_t receive[], const uint_fast16_t length) const;
 	virtual inline const uint_fast8_t GetBitsPerWord() const {return bits;}
-	virtual inline const uint_fast8_t GetSpeed() const {return speed;}
+	virtual inline const uint_fast32_t GetSpeed() const {return speed;}
 	virtual inline const uint_fast8_t GetDelay() const {return delay;}
 	virtual inline const uint_fast8_t GetActiveFlag() const {return active;}
 

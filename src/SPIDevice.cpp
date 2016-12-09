@@ -41,7 +41,7 @@
  * @param bus The SPI bus number X (first digit after spidevX.Y)
  * @param device The device on the bus Y (second digit after spidevX.Y)
  */
-SPIDevice::SPIDevice(const uint_fast8_t bus, const uint_fast8_t device, const uint_fast16_t speed)
+SPIDevice::SPIDevice(const uint_fast8_t bus, const uint_fast8_t device, const uint_fast32_t speed)
 	:BusDevice(bus,device)
 {
 	filename=SPI_PATH+std::to_string(bus)+"."+std::to_string(device);
@@ -94,7 +94,7 @@ const int_fast8_t SPIDevice::open()
  * following methods to read and write registers.
  * @param send The array of data to send to the SPI device
  * @param receive The array of data to receive from the SPI device
- * @param length The length of the array to send
+ * @param length The length of both arrays
  * @return -1 on failure
  */
 const int_fast8_t SPIDevice::transfer(const uint_fast8_t send[], uint_fast8_t receive[], const uint_fast16_t length) const

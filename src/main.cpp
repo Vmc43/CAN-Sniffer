@@ -11,14 +11,14 @@
 
 using namespace std;
 
-#define SPI_SPEED 7800000	//Raspy
+#define SPI_SPEED 500000	//Raspy
 //#define SPI_SPEED 1000000	//Bealgeboard
-#define Quartz_Speed 8.0
-#define Bitrate 1000000
+#define Quartz_Speed 8000000
+#define Bitrate 125000
 
 int main()
 {
-	//MCP2515 Test(0,0,Quartz_Speed,Bitrate,0,SPI_SPEED);
+	MCP2515 Test((uint_fast8_t)0,(uint_fast8_t)0,(uint_fast32_t)Quartz_Speed,(uint_fast32_t)Bitrate,(uint_fast8_t)9,(uint_fast32_t)SPI_SPEED);
 	//Test.Read_Rx_Status();
 
 	//cout<<"Bitrate: "<<Test.GetBitRate()<<endl;
