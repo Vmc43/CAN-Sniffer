@@ -159,11 +159,15 @@ const int_fast8_t SPIDevice::setSpeed(const uint32_t speed)
 		cerr<<"SPI: Can't set max speed HZ"<<endl;
 		return -1;
 	}
+
+	//Liest nur wieder aktuellen Speed:
+	/*
 	if(ioctl(GetHandler(), SPI_IOC_RD_MAX_SPEED_HZ, &this->speed)==-1)
 	{
 		cerr<<"SPI: Can't get max speed HZ."<<endl;
 		return -1;
 	}
+	*/
 
 	if(Active_vorher)
 	{
@@ -191,11 +195,13 @@ const int_fast8_t SPIDevice::setMode(const SPIDevice::SPIMODE mode)
 		cerr<<"SPI: Can't set SPI mode."<<endl;
 		return -1;
 	}
-	if (ioctl(GetHandler(), SPI_IOC_RD_MODE, &mode)==-1)
+
+	//Liest nur wieder aktuellen Mode
+	/*if (ioctl(GetHandler(), SPI_IOC_RD_MODE, &mode)==-1)
 	{
 		cerr<<"SPI: Can't get SPI mode."<<endl;
 		return -1;
-	}
+	}*/
 
 	if(Active_vorher)
 	{
@@ -223,11 +229,15 @@ const int_fast8_t SPIDevice::setBitsPerWord(const uint8_t bits)
 		cerr<<"SPI: Can't set bits per word."<<endl;
 		return -1;
 	}
+
+	//Liest nur wieder aktuelle Bits per Word Anzahl
+	/*
 	if(ioctl(GetHandler(), SPI_IOC_RD_BITS_PER_WORD, &this->bits)==-1)
 	{
 		cerr<<"SPI: Can't get bits per word."<<endl;
 		return -1;
 	}
+	*/
 
 	if(Active_vorher)
 	{
