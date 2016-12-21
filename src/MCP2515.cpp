@@ -148,7 +148,7 @@ void MCP2515::ChangeBitRate(const uint_fast32_t Bitrate_Bit_s)
 	if(Bitrate_Bit_s>1000000)
 	{
 		cerr<<"Baudrate zu groß!"<<endl;
-		return;transfer
+		return;
 	}
 
 	uint_fast8_t Active_Flag_vorher=false;
@@ -226,7 +226,7 @@ void MCP2515::ChangeCLKoutPin(const uint_fast8_t OnOffFlag, const uint_fast8_t d
 	//Geht nur im Config-mode
 	uint_fast8_t Active_Flag_vorher=false;
 	if(Active_Flag)
-	{transfer
+	{
 		GoInConfigMode();
 		Active_Flag_vorher=true;
 	}
@@ -261,7 +261,7 @@ void MCP2515::ChangeCLKoutPin(const uint_fast8_t OnOffFlag, const uint_fast8_t d
 }
 
 const uint_fast8_t MCP2515::Read_Rx_Status() const
-{transfer
+{
 	return readRegister((uint_fast8_t)SPI_RX_STATUS);
 }
 
@@ -296,7 +296,7 @@ void MCP2515::SetInterruptPinOnlyForRecive(const uint_fast8_t state)
 {
 	if(state==true)
 	{
-		writeRegister((uint_fast8_t)CANINTE,3);transfer
+		writeRegister((uint_fast8_t)CANINTE,3);
 		Interrupt_Pin_Register=true;
 	}
 	else
@@ -548,29 +548,58 @@ void MCP2515::Dummy()
 
 }
 
-void MCP2515::Send_Message(const CANMessage& Message) const
+int_fast8_t MCP2515::Send_Message(const CANMessage& Message) const
 {
-
-/*	uint_fast16_t id;
-	uint_fast8_t rtr;
-	uint_fast8_t length;
-	uint_fast8_t data[8];
-	*/
-
-	const uint_fast8_t status=Read_TX_STATUS();			//auslesen ob txnctrl.req frei?
-
-	const uint_fast8_t address = (Get_Free_TX_Buffer(status) | 64);
-
-
-	if (address)
+	//Fehlererkennung:
+	if(Message.length>8)
 	{
-
-		const uint_fast8_t send[3]{address};		//send muss gleichgroß wie receive sein
-		uint_fast8_t receive[3];
-		uint_fast8_t Return=0xFF;
+		cerr<<"Fehler in Send_Message: Nur max. 8 Bytes an Daten zulässig!"<<endl;
+		return -1;
 	}
 
+	const uint_fast8_t status=Read_STATUS();	//auslesen ob txnctrl.req frei?
+	const uint_fast8_t address=TX_Puffer_ermitteln(status);
 
+	//Vorbereitungen Senden
+	uint_fast8_t Anzahl_Bytes;
+	uint_fast8_t SPI_Nachricht[14]; //14 is worst case mit 8 Datenframes
+
+	//Array befüllen und in einen Batzen wegschicken:
+	SPI_Nachricht[0]=(SPI_WRITE_TX | address); //TX_Buffer Schreibkommando (samt zuvor passend ermittelter gerade freier Adresse/Buffer)
+	//Standard ID einstellen:
+	SPI_Nachricht[1]=(uint_fast8_t)(Message.id>>3);
+	SPI_Nachricht[2]=(uint_fast8_t)(Message.id<<5);
+	//Extended ID:
+	SPI_Nachricht[3]=0x00;
+	SPI_Nachricht[4]=0x00;
+
+	// Ist die Nachricht ein "Remote Transmit Request" ?
+	if(Message.rtr)
+	{
+		//Ein RTR hat zwar eine Laenge, aber enthaelt keine Daten
+		//Nachrichten Laenge (zu erwartende Daten) + RTR einstellen
+		SPI_Nachricht[5]=((1<<RTR) | Message.length);
+
+		Anzahl_Bytes=	1				+2				+2				+1;
+		//Erklärung:	SPI_Commando	Standard ID		Extended ID		RTR-Flag
+	}
+	else
+	{
+		SPI_Nachricht[5]=Message.length;
+
+		//Daten befüllen:
+		for(uint_fast8_t i=6;i<(Message.length+6);i++)
+		{
+			SPI_Nachricht[i]=Message.data[i-6];
+		}
+
+
+		Anzahl_Bytes=	1				+2				+2				+1					+Message.length;
+		//Erklärung:	SPI_Commando	Standard ID		Extended ID		Data Length Code	Nachrichtenlänge
+	}
+
+	//Auf Bus schreiben:
+	return SPIDevice::write(SPI_Nachricht,Anzahl_Bytes);
 }
 
 const MCP2515::CANMessage MCP2515::Recive_Message(const uint_fast8_t Buffer) const
@@ -579,7 +608,7 @@ const MCP2515::CANMessage MCP2515::Recive_Message(const uint_fast8_t Buffer) con
 }
 
 
-const uint_fast8_t MCP2515::Read_TX_STATUS() const
+const uint_fast8_t MCP2515::Read_STATUS() const
 {
 	const uint_fast8_t send[3]{SPI_READ_STATUS};		//send muss gleichgroß wie receive sein
 	uint_fast8_t receive[3];
@@ -587,64 +616,46 @@ const uint_fast8_t MCP2515::Read_TX_STATUS() const
 
 	if (transfer(send,receive,3)!=-1)
 	{
-		Return=receive[2];			//gibt mir 2.tes frame zurück
+		Return=receive[1];			//gibt mir 2.tes frame zurück
 	}
 	return Return;
 }
 
-const uint_fast8_t MCP2515::Get_Free_TX_Buffer(const uint_fast8_t status) const
+const uint_fast8_t MCP2515::Bit_is_Set(const uint_fast8_t Wert, const uint_fast8_t BitNummer) const
 {
-	uint_fast8_t Address_Buffer[] = {TXB0SIDH, TXB1SIDH, TXB2SIDH};		//Addresses of tx_Buffer
-	uint_fast8_t help_buff = status;
+	//Ablauf siehe: https://www.lowlevel.eu/wiki/Bitweise_Operatoren#Bit_testen
+	//Dafür löscht man einfach alle Bits, die nicht betrachtet werden sollen mithilfe der AND Verknüpfung.
+	//Ist das Resultat 0, dann war das betrachtete Bit gelöscht, andernfalls war es gesetzt.
 
-	for(int i = 0; i<3; i++)
+	if((Wert & (1 << BitNummer)) == 0)
 	{
-		help_buff = status & (2 + i * 2);	//Überprüft ob udnd welches bit gesetzt ist
-		if (help_buff > 0)						//
-		{
-			switch(help_buff)
-			{
-				case 4:
-					return 1;			//Address_Buffer[0];
-				case 16:
-					return 2;		//Address_Buffer[1];
-				case 64:
-					return 4;			//Address_Buffer[2];
-			}
-
-		}
+		return false;
 	}
-
-/*
-	for (int i = 0; i < 3; i++)
+	else
 	{
-		if (((2 + (i * 2))&status) > 0)
-		{
-			Address_Buffer[i] = Address_Buffer[i] | 64;		//Setzt zusätzlich TX buffer bit stelle 7
-			return Address_Buffer[i];			//returned addresse von freiem tx buffer
-		}
-
-	}	*/
-	return 0;		//sonst 0
-	//returend transmit control requ bitl
+		return true;
+	}
 }
 
-
-
-/*const uint_fast8_t MCP2515::readRegister(const uint_fast8_t registerAddress) const
+const uint_fast8_t MCP2515::TX_Puffer_ermitteln(const uint_fast8_t status) const
 {
-	const uint_fast8_t send[3]{SPI_READ,registerAddress};
-	uint_fast8_t receive[3];
-	uint_fast8_t Return=0xFF;
-
-	if(transfer(send,receive,3)!=-1)
+	if(!Bit_is_Set(status,2))
 	{
-		Return=receive[2];
+		return 0x00;
 	}
-	return Return;
+	else if(!Bit_is_Set(status,4))
+	{
+		return 0x02;
+	}
+	else if(!Bit_is_Set(status,6))
+	{
+		return 0x04;
+	}
+	else
+	{
+		return 0xFF;
+	}
 }
-*/
-
 
 
 

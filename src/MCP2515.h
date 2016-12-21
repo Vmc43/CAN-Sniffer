@@ -85,10 +85,11 @@ private:
 	virtual void Set_Wake_Up_Filer(const uint_fast8_t state); //Schaltet Filter an CAN-Leitungen um versehentliches Aufwachen im sleppmode zu verhindern
 	virtual const uint_fast8_t IsBool(const uint_fast8_t& number) const;
 	virtual void Change_CLKOUT_PIN_REGISTER(const uint_fast8_t CLKEN_Bit, const uint_fast8_t CLKPRE) const;
-	virtual void Send_Message(const CANMessage& Message) const;
+	virtual int_fast8_t Send_Message(const CANMessage& Message) const;
 	virtual const CANMessage Recive_Message(const uint_fast8_t Buffer) const;
-	virtual const uint_fast8_t Read_TX_STATUS() const;
-	const uint_fast8_t Get_Free_TX_Buffer(const uint_fast8_t status)const;
+	virtual const uint_fast8_t Read_STATUS() const;
+	virtual const uint_fast8_t Bit_is_Set(const uint_fast8_t Wert, const uint_fast8_t BitNummer) const;
+	virtual const uint_fast8_t TX_Puffer_ermitteln(const uint_fast8_t status) const;
 
 	//Dummy
 	virtual void Dummy();
