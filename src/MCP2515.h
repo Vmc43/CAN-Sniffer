@@ -15,6 +15,16 @@ using namespace std;
 
 class MCP2515:public SPIDevice
 {
+//Structs in Klasse:
+public:
+	struct CANMessage
+	{
+		uint_fast16_t id;
+		uint_fast8_t rtr;
+		uint_fast8_t length;
+		uint_fast8_t data[8];
+	};
+
 public:
 	MCP2515(const uint_fast8_t bus, const uint_fast8_t device, const uint_fast32_t Quartz_Speed_Hz, const uint_fast32_t Bitrate_CAN_Bit_s, const uint_fast8_t GlobalInterruptPinNr, const uint_fast32_t SPI_speed=500000);
 	MCP2515(const uint_fast8_t bus, const uint_fast8_t device, const uint_fast32_t Quartz_Speed_Hz, const uint_fast32_t Bitrate_CAN_Bit_s, const uint_fast8_t RxPuffer0Pin, const uint_fast8_t RxPuffer1Pin, const uint_fast32_t SPI_speed=500000);
@@ -49,6 +59,9 @@ public:
 	//TODO Maske0 ist für Puffer0 und Maske1 ist für Puffer1
 	//TODO SPI_Längenantwort immer wie in AVR umsetzen bei 2 byte senden und 2 byte empfangen Sendepuffer+2
 
+
+
+
 private:
 	//Methoden:
 	//Kommt von Mutterklasse, Chip kann aber nur 8-Bit Adressen
@@ -72,6 +85,10 @@ private:
 	virtual void Set_Wake_Up_Filer(const uint_fast8_t state); //Schaltet Filter an CAN-Leitungen um versehentliches Aufwachen im sleppmode zu verhindern
 	virtual const uint_fast8_t IsBool(const uint_fast8_t& number) const;
 	virtual void Change_CLKOUT_PIN_REGISTER(const uint_fast8_t CLKEN_Bit, const uint_fast8_t CLKPRE) const;
+	virtual void Send_Message(const CANMessage& Message) const;
+	virtual const CANMessage Recive_Message(const uint_fast8_t Buffer) const;
+	virtual const uint_fast8_t Read_TX_STATUS() const;
+	const uint_fast8_t Get_Free_TX_Buffer(const uint_fast8_t status)const;
 
 	//Dummy
 	virtual void Dummy();

@@ -37,10 +37,10 @@ void GPIO_Poll::Start()
 	The_Thread = std::thread(&GPIO_Poll::WaitForEdge,this);
 }
 
-void GPIO_Poll::ThreadMain()
+/*void GPIO_Poll::ThreadMain()
 {
 
-}
+}*/
 
 int_fast8_t GPIO_Poll::WaitForEdge()
 {

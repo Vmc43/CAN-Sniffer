@@ -28,7 +28,7 @@ public:
 
 private:
 	virtual int_fast8_t WaitForEdge(); // threaded with callback
-	virtual void ThreadMain();
+	virtual void TreadMain();
 
 	std::thread The_Thread;
 	uint_fast8_t Stop_Thread = false; // Super simple thread stopping.
