@@ -20,5 +20,7 @@ int main()
 {
 	MCP2515 Test((uint_fast8_t)0,(uint_fast8_t)0,(uint_fast32_t)Quartz_Speed,(uint_fast32_t)Bitrate,(uint_fast8_t)9,(uint_fast32_t)SPI_SPEED);
 
+	Test.Dummy();
+
 	return 0;
 }

@@ -545,7 +545,13 @@ void MCP2515::SetMaskStandard(const uint_fast8_t MaskNr, const uint_fast16_t Mas
 
 void MCP2515::Dummy()
 {
+	CANMessage Message;
+	Message.id=0x12;
+	Message.length=1;
+	Message.rtr=false;
+	Message.data[0]=0x42;
 
+	Send_Message(Message);
 }
 
 int_fast8_t MCP2515::Send_Message(const CANMessage& Message) const
@@ -559,6 +565,10 @@ int_fast8_t MCP2515::Send_Message(const CANMessage& Message) const
 
 	const uint_fast8_t status=Read_STATUS();	//auslesen ob txnctrl.req frei?
 	const uint_fast8_t address=TX_Puffer_ermitteln(status);
+	if(address==0xFF)
+	{
+		cerr<<"Fehler in TX_Puffer_ermitteln ungültiger Puffer empfangen!"<<endl;
+	}
 
 	//Vorbereitungen Senden
 	uint_fast8_t Anzahl_Bytes;
@@ -599,12 +609,78 @@ int_fast8_t MCP2515::Send_Message(const CANMessage& Message) const
 	}
 
 	//Auf Bus schreiben:
-	return SPIDevice::write(SPI_Nachricht,Anzahl_Bytes);
+	if(SPIDevice::write(SPI_Nachricht,Anzahl_Bytes)==-1)
+	{
+		cerr<<"Fehler in MCP2515::Send_Message, Nachrichtenpack konnte nicht erfolgreich auf SPI-Bus geschrieben werden"<<endl;
+		return -1;
+	}
+
+	//Befehl zum Abschicken der Nachricht senden:
+	if(address==0x00)
+	{
+		return(SPIDevice::write(SPI_RTS | 0x01));
+	}
+	else
+	{
+		return(SPIDevice::write(SPI_RTS | address));
+	}
 }
 
 const MCP2515::CANMessage MCP2515::Recive_Message(const uint_fast8_t Buffer) const
 {
+	uint_fast8_t SPI_Befehl;
+	if(Buffer==0)
+	{
+		SPI_Befehl=(SPI_READ_RX);
+	}
+	else if(Buffer==1)
+	{
+		SPI_Befehl=(SPI_READ_RX | 0x04);
+	}
+	else
+	{
+		cerr<<"Ungültiger RX-Puffer an MCP2515::Recive_Message() übergeben, es gibt nur Puffer 0 und 1!"<<endl;
+	}
 
+	//Wie bei Senden, schrittweises befüllen
+	uint_fast8_t SPI_Nachricht[14]; //14 is worst case mit 8 Datenframes
+
+	//Worstcase annehmen und alle Register für Nachricht auslesen, da es "ewig" dauert von CS runter bis Taktbeginn
+	//14 Bytes am Stück holen ist ~ Faktor 2 bei 7-10 MHz (erst ab ~42 kHz SPI Speed würde CS oben lassen lohnen)
+	if(Get_RX_Array(SPI_Befehl,SPI_Nachricht)==-1)
+	{
+		cerr<<"Fehler in MCP2515::Recive_Message(), Get_RX_Array() nicht erfolgreich!"<<endl;
+	}
+
+	//Beginn Auserten
+	CANMessage Message;
+
+	//Standard ID auslesen
+	Message.id=(uint_fast16_t)SPI_Nachricht[1];
+	Message.id=(uint_fast16_t)SPI_Nachricht[2];
+
+	//Extended ID
+
+	//Länge auslesen:
+	Message.length=(SPI_Nachricht[3] & 0x0f);
+
+	if(Bit_is_Set(SPI_Nachricht[3],6))
+	{
+		Message.rtr=true;
+	}
+	else //Kein rtr und Daten vorhanden!
+	{
+		//Message.rtr=false; Nicht nötig weil schon mit structerstellung auf false
+
+		//Daten auslesen:
+		for(uint_fast8_t i=4;i<(Message.length+4);i++)
+		{
+			Message.data[i-4]=SPI_Nachricht[i];
+		}
+	}
+
+	//Rückgabe
+	return Message;
 }
 
 
@@ -657,8 +733,55 @@ const uint_fast8_t MCP2515::TX_Puffer_ermitteln(const uint_fast8_t status) const
 	}
 }
 
+const uint_fast8_t MCP2515::Read_RX_STATUS() const
+{
+	const uint_fast8_t send[3]{SPI_RX_STATUS};		//send muss gleichgroß wie receive sein
+	uint_fast8_t receive[3];
+	uint_fast8_t Return=0xFF;
 
+	if (transfer(send,receive,3)!=-1)
+	{
+		Return=receive[1];			//gibt mir 2.tes frame zurück
+	}
+	return Return;
+}
 
+const uint_fast8_t MCP2515::RX_Puffer_ermitteln(const uint_fast8_t status) const
+{
+	if(Bit_is_Set(status,6))
+	{
+		return 0x00;
+	}
+	else if(Bit_is_Set(status,7))
+	{
+		return 0x04;
+	}
+	else
+	{
+		return 0xFF;
+	}
+}
 
+const uint_fast8_t MCP2515::Get_RX_Array(const uint_fast8_t Befehl, uint_fast8_t Array[], const uint_fast8_t Laenge) const
+{
+	Array[0]=Befehl;
+	return (transfer(Array,Array,Laenge));
+}
 
+const MCP2515::CANMessage MCP2515::Get_Message_With_Buffer_Via_SPI() const
+{
+	const uint_fast8_t status=Read_RX_STATUS();
+	if(status==0xFF)
+	{
+		cerr<<"Fehler in MCP2515::Get_Message_With_Buffer_Via_SPI(): Ungültiger Puffer von MCP2515::Read_RX_STATUS() erhalten!"<<endl;
+	}
 
+	if(Bit_is_Set(status,6)) //Puffer 0
+	{
+		return Recive_Message(0);
+	}
+	else if(Bit_is_Set(status,7)) //Puffer 1
+	{
+		return Recive_Message(1);
+	}
+}

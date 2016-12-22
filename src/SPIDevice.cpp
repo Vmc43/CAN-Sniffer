@@ -112,7 +112,7 @@ const int_fast8_t SPIDevice::transfer(const uint_fast8_t send[], uint_fast8_t re
 	transfer.bits_per_word = bits;
 	transfer.delay_usecs = delay;
 
-	const int_fast8_t status = ioctl(GetHandler(), SPI_IOC_MESSAGE(1), &transfer);
+	const int_fast8_t status = ioctl(GetHandler(), SPI_IOC_MESSAGE(1), &transfer); //SPI_IOC_MESSAGE(n) n wären einzelne spi_ioc_transfer structs
 	if(status < 0)
 	{
 		cerr<<"SPI: SPI_IOC_MESSAGE Failed!"<<endl;
@@ -267,7 +267,7 @@ SPIDevice::~SPIDevice()
 
 const int_fast8_t SPIDevice::write(const uint_fast8_t value) const
 {
-	uint_fast8_t null_return = 0x00;
+	uint_fast8_t null_return;
 
 	return transfer(&value, &null_return, sizeof(value));
 }

@@ -20,10 +20,13 @@ public:
 	struct CANMessage
 	{
 		uint_fast16_t id;
-		uint_fast8_t rtr;
-		uint_fast8_t length;
+		uint_fast8_t rtr=false;
+		uint_fast8_t length=0;
 		uint_fast8_t data[8];
 	};
+
+	//Dummy
+	virtual void Dummy();
 
 public:
 	MCP2515(const uint_fast8_t bus, const uint_fast8_t device, const uint_fast32_t Quartz_Speed_Hz, const uint_fast32_t Bitrate_CAN_Bit_s, const uint_fast8_t GlobalInterruptPinNr, const uint_fast32_t SPI_speed=500000);
@@ -87,12 +90,13 @@ private:
 	virtual void Change_CLKOUT_PIN_REGISTER(const uint_fast8_t CLKEN_Bit, const uint_fast8_t CLKPRE) const;
 	virtual int_fast8_t Send_Message(const CANMessage& Message) const;
 	virtual const CANMessage Recive_Message(const uint_fast8_t Buffer) const;
-	virtual const uint_fast8_t Read_STATUS() const;
 	virtual const uint_fast8_t Bit_is_Set(const uint_fast8_t Wert, const uint_fast8_t BitNummer) const;
+	virtual const uint_fast8_t Read_STATUS() const;
 	virtual const uint_fast8_t TX_Puffer_ermitteln(const uint_fast8_t status) const;
-
-	//Dummy
-	virtual void Dummy();
+	virtual const uint_fast8_t RX_Puffer_ermitteln(const uint_fast8_t status) const;
+	virtual const uint_fast8_t Read_RX_STATUS() const;
+	virtual const uint_fast8_t Get_RX_Array(const uint_fast8_t Befehl, uint_fast8_t Array[], const uint_fast8_t Laenge=14) const;
+	virtual const CANMessage Get_Message_With_Buffer_Via_SPI() const;
 
 	//Attribute:
 	const uint_fast32_t Quartz_Speed_Hz=0;	//in Hz
