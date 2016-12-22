@@ -269,7 +269,7 @@ void MCP2515::Reset() const
 {
 	SPIDevice::write(SPI_RESET);
 	//Warten bis Reset vorbei
-	std::this_thread::sleep_for(std::chrono::milliseconds(5));
+	std::this_thread::sleep_for(std::chrono::milliseconds(10));
 }
 
 void MCP2515::GoInConfigMode()
@@ -548,10 +548,11 @@ void MCP2515::Dummy()
 	CANMessage Message;
 	Message.id=0x12;
 	Message.length=1;
-	Message.rtr=false;
 	Message.data[0]=0x42;
 
 	Send_Message(Message);
+
+	Get_Message_With_Buffer_Via_SPI();
 }
 
 int_fast8_t MCP2515::Send_Message(const CANMessage& Message) const
@@ -656,15 +657,17 @@ const MCP2515::CANMessage MCP2515::Recive_Message(const uint_fast8_t Buffer) con
 	CANMessage Message;
 
 	//Standard ID auslesen
-	Message.id=(uint_fast16_t)SPI_Nachricht[1];
-	Message.id=(uint_fast16_t)SPI_Nachricht[2];
+	Message.id=(uint_fast16_t)(SPI_Nachricht[1] << 3);
+	Message.id|=(uint_fast16_t)(SPI_Nachricht[2] >> 5);
 
 	//Extended ID
+	//SPI_Nachricht[3] EID15-EID08
+	//SPI_Nachricht[4] EID07-EID00
 
 	//Länge auslesen:
-	Message.length=(SPI_Nachricht[3] & 0x0f);
+	Message.length=(SPI_Nachricht[5] & 0b1111); //Nur die letzten 4 Bit interessieren
 
-	if(Bit_is_Set(SPI_Nachricht[3],6))
+	if(Bit_is_Set(SPI_Nachricht[5],6))
 	{
 		Message.rtr=true;
 	}
@@ -673,9 +676,9 @@ const MCP2515::CANMessage MCP2515::Recive_Message(const uint_fast8_t Buffer) con
 		//Message.rtr=false; Nicht nötig weil schon mit structerstellung auf false
 
 		//Daten auslesen:
-		for(uint_fast8_t i=4;i<(Message.length+4);i++)
+		for(uint_fast8_t i=6;i<(Message.length+6);i++)
 		{
-			Message.data[i-4]=SPI_Nachricht[i];
+			Message.data[i-6]=SPI_Nachricht[i];
 		}
 	}
 
